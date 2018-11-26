@@ -28,6 +28,7 @@ class ContrastCurveModule(ProcessingModule):
                  psf_in_tag="im_psf",
                  pca_out_tag=None,
                  contrast_out_tag="contrast_limits",
+                 contrast_map_out_tag = "contrast_map",
                  separation=(0.1, 1., 0.01),
                  angle=(0., 360., 60.),
                  magnitude=(7.5, 1.),
@@ -119,6 +120,7 @@ class ContrastCurveModule(ProcessingModule):
             self.m_pca_out_port = self.add_output_port(pca_out_tag)
 
         self.m_contrast_out_port = self.add_output_port(contrast_out_tag)
+        self.m_contrast_map_out_port = self.add_output_port(contrast_map_out_tag)
 
         self.m_image_in_tag = image_in_tag
         self.m_psf_in_tag = psf_in_tag
@@ -170,8 +172,9 @@ class ContrastCurveModule(ProcessingModule):
 
         if psf.ndim == 3 and psf.shape[0] != images.shape[0]:
             raise ValueError('The number of frames in psf_in_tag does not match with the number of '
-                             'frames in image_in_tag. The DerotateAndOrStackModule can be used to '
-                             'average the PSF frames before applying the ContrastCurveModule.')
+                             'frames in image_in_tag. The DerotateAndStackModule can be used to '
+                             'average the PSF frames (without derotating) before applying the '
+                             'ContrastCurveModule.')
 
         center = np.array([images.shape[2]/2., images.shape[1]/2.])
 
@@ -330,6 +333,8 @@ class ContrastCurveModule(ProcessingModule):
 
                 count += 1
 
+        self.m_contrast_map_out_port.set_all(fake_mag)
+
         result = np.column_stack((pos_r*pixscale,
                                   np.nanmean(fake_mag, axis=1),
                                   np.nanvar(fake_mag, axis=1),
@@ -352,3 +357,7 @@ class ContrastCurveModule(ProcessingModule):
         self.m_contrast_out_port.copy_attributes_from_input_port(self.m_image_in_port)
 
         self.m_contrast_out_port.close_port()
+
+        self.m_contrast_map_out_port.add_history_information("Contrast map")
+        self.m_contrast_map_out_port.copy_attributes_from_input_port(self.m_image_in_port)
+        self.m_contrast_map_out_port.close_port()
