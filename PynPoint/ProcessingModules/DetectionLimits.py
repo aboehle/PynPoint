@@ -356,7 +356,7 @@ class ContrastCurveModule(ProcessingModule):
 
         self.m_contrast_out_port.copy_attributes_from_input_port(self.m_image_in_port)
 
-        self.m_contrast_out_port.close_port()
+        #self.m_contrast_out_port.close_port()
 
         #self.m_contrast_map_out_port.add_history_information("Contrast map")
         self.m_contrast_map_out_port.copy_attributes_from_input_port(self.m_image_in_port)
