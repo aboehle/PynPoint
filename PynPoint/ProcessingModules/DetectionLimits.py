@@ -206,7 +206,7 @@ class ContrastCurveModule(ProcessingModule):
 
         pos_r = np.delete(pos_r, index_del)
 
-        max_iter = 50
+        max_iter = 30
 
         fake_mag = np.zeros((len(pos_r), len(pos_t)))
         fake_fpf = np.zeros((len(pos_r)))
@@ -221,6 +221,8 @@ class ContrastCurveModule(ProcessingModule):
         for i, sep in enumerate(pos_r):
             fpf_threshold = student_fpf(self.m_sigma, sep, self.m_aperture, self.m_ignore)
             fake_fpf[i] = fpf_threshold
+
+            sys.stdout.write('fpf = {:d} for sep = {:d}'.format(fpf_threshold,sep))
 
             for j, ang in enumerate(pos_t):
                 sys.stdout.write("Processing position " + str(count) + " out of " + \
@@ -366,7 +368,7 @@ class ContrastCurveModule(ProcessingModule):
         if self.m_fpf_out_port is not None:
             self.m_fpf_out_port.set_all(fpf_out)
             self.m_fpf_out_port.append(mag_out)
-            
+
             self.m_fpf_out_port.add_history_information("Contrast limits",
                                                         str(self.m_sigma)+" sigma")
             self.m_fpf_out_port.copy_attributes_from_input_port(self.m_image_in_port)
