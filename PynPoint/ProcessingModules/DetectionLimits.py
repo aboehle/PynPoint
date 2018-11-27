@@ -210,7 +210,8 @@ class ContrastCurveModule(ProcessingModule):
 
         fake_mag = np.zeros((len(pos_r), len(pos_t)))
         fake_fpf = np.zeros((len(pos_r)))
-        fpf_out = np.zeros((max_iter, len(pos_r), len(pos_t), 2))
+        fpf_out = np.zeros((max_iter, len(pos_r), len(pos_t)))
+        mag_out = np.zeros((max_iter, len(pos_r), len(pos_t)))
 
         count = 1
 
@@ -272,8 +273,8 @@ class ContrastCurveModule(ProcessingModule):
                     _, _, fpf = false_alarm(im_res, x_fake, y_fake, self.m_aperture, self.m_ignore)
 
                     list_fpf.append(fpf)
-                    fpf_out[iteration-1, i, j, 0] = fpf
-                    fpf_out[iteration-1, i, j, 1] = mag
+                    fpf_out[iteration-1, i, j] = fpf
+                    mag_out[iteration-1, i, j] = mag
 
                     if abs(fpf_threshold-list_fpf[-1]) < self.m_accuracy*fpf_threshold:
                         if len(list_fpf) == 1:
@@ -364,6 +365,8 @@ class ContrastCurveModule(ProcessingModule):
 
         if self.m_fpf_out_port is not None:
             self.m_fpf_out_port.set_all(fpf_out)
+            self.m_fpf_out_port.append(mag_out)
+            
             self.m_fpf_out_port.add_history_information("Contrast limits",
                                                         str(self.m_sigma)+" sigma")
             self.m_fpf_out_port.copy_attributes_from_input_port(self.m_image_in_port)
