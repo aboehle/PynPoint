@@ -29,6 +29,7 @@ class ContrastCurveModule(ProcessingModule):
                  pca_out_tag=None,
                  contrast_out_tag="contrast_limits",
                  contrast_map_out_tag = "contrast_map",
+                 fpf_out_tag = None,
                  separation=(0.1, 1., 0.01),
                  angle=(0., 360., 60.),
                  magnitude=(7.5, 1.),
@@ -119,6 +120,11 @@ class ContrastCurveModule(ProcessingModule):
         else:
             self.m_pca_out_port = self.add_output_port(pca_out_tag)
 
+        if fpf_out_tag is None:
+            self.m_fpf_out_port = None
+        else:
+            self.m_fpf_out_port = self.add_output_port(fpf_out_tag)
+
         self.m_contrast_out_port = self.add_output_port(contrast_out_tag)
         self.m_contrast_map_out_port = self.add_output_port(contrast_map_out_tag)
 
@@ -200,8 +206,11 @@ class ContrastCurveModule(ProcessingModule):
 
         pos_r = np.delete(pos_r, index_del)
 
+        max_iter = 50
+
         fake_mag = np.zeros((len(pos_r), len(pos_t)))
         fake_fpf = np.zeros((len(pos_r)))
+        fpf_out = np.zeros((max_iter, len(pos_r), len(pos_t), 2))
 
         count = 1
 
@@ -263,6 +272,8 @@ class ContrastCurveModule(ProcessingModule):
                     _, _, fpf = false_alarm(im_res, x_fake, y_fake, self.m_aperture, self.m_ignore)
 
                     list_fpf.append(fpf)
+                    fpf_out[iteration-1, i, j, 0] = fpf
+                    fpf_out[iteration-1, i, j, 1] = mag
 
                     if abs(fpf_threshold-list_fpf[-1]) < self.m_accuracy*fpf_threshold:
                         if len(list_fpf) == 1:
@@ -320,7 +331,7 @@ class ContrastCurveModule(ProcessingModule):
 
                     iteration += 1
 
-                    if iteration == 50:
+                    if iteration == max_iter:
                         warnings.warn("ContrastModule could not converge at the position of "
                                       "%s arcsec and %s deg." % (sep*pixscale, ang))
 
@@ -351,6 +362,12 @@ class ContrastCurveModule(ProcessingModule):
 
             self.m_pca_out_port.copy_attributes_from_input_port(self.m_image_in_port)
 
+        if self.m_fpf_out_port is not None:
+            self.m_fpf_out_port.set_all(fpf_out)
+            self.m_fpf_out_port.add_history_information("Contrast limits",
+                                                        str(self.m_sigma)+" sigma")
+            self.m_fpf_out_port.copy_attributes_from_input_port(self.m_image_in_port)
+
         self.m_contrast_out_port.add_history_information("Contrast limits",
                                                          str(self.m_sigma)+" sigma")
 
@@ -361,4 +378,5 @@ class ContrastCurveModule(ProcessingModule):
         self.m_contrast_map_out_port.add_history_information("Contrast map",
                                                              str(self.m_sigma) + " sigma")
         self.m_contrast_map_out_port.copy_attributes_from_input_port(self.m_image_in_port)
+
         self.m_contrast_map_out_port.close_port()
