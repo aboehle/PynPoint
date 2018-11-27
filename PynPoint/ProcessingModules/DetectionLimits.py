@@ -222,7 +222,7 @@ class ContrastCurveModule(ProcessingModule):
             fpf_threshold = student_fpf(self.m_sigma, sep, self.m_aperture, self.m_ignore)
             fake_fpf[i] = fpf_threshold
 
-            sys.stdout.write('fpf = {:d} for sep = {:d}'.format(fpf_threshold,sep))
+            sys.stdout.write('fpf = {:f} for sep = {:f}'.format(fpf_threshold,sep))
 
             for j, ang in enumerate(pos_t):
                 sys.stdout.write("Processing position " + str(count) + " out of " + \
