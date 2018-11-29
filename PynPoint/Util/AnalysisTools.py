@@ -7,7 +7,7 @@ import math
 import numpy as np
 
 from photutils import aperture_photometry, CircularAperture
-from scipy.stats import t
+from scipy.stats import t, norm
 
 from PynPoint.Util.ImageTools import shift_image
 
@@ -73,6 +73,15 @@ def student_fpf(sigma, radius, size, ignore):
         num_ap -= 2
 
     return 1. - t.cdf(sigma, num_ap-2, loc=0., scale=1.)
+
+def gaussian_fpf(sigma):
+    """
+    Function to calculate the false positive fraction for a given sigma level from a Gaussian.
+    :param sigma:
+    :return: fpf
+    """
+
+    return 1. - norm.cdf(sigma, loc=0., scale=1.)
 
 def fake_planet(images,
                 psf,
