@@ -206,7 +206,8 @@ class ContrastCurveModule(ProcessingModule):
 
         pos_r = np.delete(pos_r, index_del)
 
-        max_iter = 15
+        max_iter = 20
+        min_mag_step = 0.01
 
         fake_mag = np.zeros((len(pos_r), len(pos_t)))
         fake_fpf = np.zeros((len(pos_r)))
@@ -335,9 +336,18 @@ class ContrastCurveModule(ProcessingModule):
 
                     iteration += 1
 
+                    if mag_step <= min_mag_step:
+                        warnings.warn("ContrastModule could not converge at the position of "
+                                      "%s arcsec and %s deg: mag_step <= %f." % (sep * pixscale, ang, min_mag_step))
+
+                        fake_mag[i, j] = np.nan
+
+                        sys.stdout.write("\n")
+                        sys.stdout.flush()
+
                     if iteration == max_iter:
                         warnings.warn("ContrastModule could not converge at the position of "
-                                      "%s arcsec and %s deg." % (sep*pixscale, ang))
+                                      "%s arcsec and %s deg: # of iterations > %i." % (sep*pixscale, ang, max_iter))
 
                         fake_mag[i, j] = np.nan
 
