@@ -336,14 +336,14 @@ class ContrastCurveModule(ProcessingModule):
 
                     iteration += 1
 
-                    if mag_step <= min_mag_step:
-                        warnings.warn("ContrastModule could not converge at the position of "
-                                      "%s arcsec and %s deg: mag_step <= %f." % (sep * pixscale, ang, min_mag_step))
+                    #if mag_step <= min_mag_step:
+                    #    warnings.warn("ContrastModule could not converge at the position of "
+                    #                  "%s arcsec and %s deg: mag_step <= %f." % (sep * pixscale, ang, min_mag_step))
 
-                        fake_mag[i, j] = np.nan
+                    #    fake_mag[i, j] = np.nan
 
-                        sys.stdout.write("\n")
-                        sys.stdout.flush()
+                    #    sys.stdout.write("\n")
+                    #    sys.stdout.flush()
 
                     if iteration == max_iter:
                         warnings.warn("ContrastModule could not converge at the position of "
