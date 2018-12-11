@@ -11,7 +11,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 from PynPoint.Core.Processing import ProcessingModule
-from PynPoint.Util.AnalysisTools import false_alarm, student_fpf, fake_planet
+from PynPoint.Util.AnalysisTools import false_alarm, student_fpf, fake_planet, gaussian_fpf
 from PynPoint.Util.ImageTools import create_mask
 from PynPoint.Util.PSFSubtractionTools import pca_psf_subtraction
 
