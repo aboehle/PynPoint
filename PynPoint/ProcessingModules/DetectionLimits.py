@@ -206,7 +206,7 @@ class ContrastCurveModule(ProcessingModule):
 
         pos_r = np.delete(pos_r, index_del)
 
-        max_iter = 15
+        max_iter = 50
 
         fake_mag = np.zeros((len(pos_r), len(pos_t)))
         fake_fpf = np.zeros((len(pos_r)))
