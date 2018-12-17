@@ -47,3 +47,26 @@ def pca_psf_subtraction(images,
         residuals[j, ] = rotate(residuals[j, ], item+extra_rot, reshape=False)
 
     return np.mean(residuals, axis=0)
+
+def adi_psf_subtraction(images,
+                        parang,
+                        extra_rot):
+    """
+
+    :param images: Stack of images, also used as reference images.
+    :type images: ndarray
+    :param parang: Angles (deg) for derotation of the images.
+    :type parang: ndarray
+    :param extra_rot: Additional rotation angle of the images (deg).
+    :type extra_rot: float
+
+    :return: Mean residuals of the PSF subtraction.
+    :rtype: ndarray
+    """
+
+    residuals = images - np.mean(images,axis=0)
+
+    for j, item in enumerate(-1.*parang):
+        residuals[j, ] = rotate(residuals[j, ], item+extra_rot, reshape=False)
+
+    return np.mean(residuals, axis=0)

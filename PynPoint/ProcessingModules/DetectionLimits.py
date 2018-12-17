@@ -30,6 +30,7 @@ class ContrastCurveModule(ProcessingModule):
                  contrast_out_tag="contrast_limits",
                  contrast_map_out_tag = "contrast_map",
                  fpf_out_tag = None,
+                 do_psf_sub = True,
                  separation=(0.1, 1., 0.01),
                  angle=(0., 360., 60.),
                  magnitude=(7.5, 1.),
@@ -131,6 +132,8 @@ class ContrastCurveModule(ProcessingModule):
         self.m_image_in_tag = image_in_tag
         self.m_psf_in_tag = psf_in_tag
 
+        self.m_do_psf_sub = do_psf_sub
+
         self.m_separation = separation
         self.m_angle = angle
         self.m_sigma = sigma
@@ -207,7 +210,6 @@ class ContrastCurveModule(ProcessingModule):
         pos_r = np.delete(pos_r, index_del)
 
         max_iter = 20
-        min_mag_step = 0.01
 
         fake_mag = np.zeros((len(pos_r), len(pos_t)))
         fake_fpf = np.zeros((len(pos_r)))
@@ -263,10 +265,15 @@ class ContrastCurveModule(ProcessingModule):
                     im_shape = (fake.shape[-2], fake.shape[-1])
                     mask = create_mask(im_shape, [self.m_cent_size, self.m_edge_size])
 
-                    im_res = pca_psf_subtraction(fake*mask,
-                                                 parang,
-                                                 self.m_pca_number,
-                                                 self.m_extra_rot)
+                    if self.m_do_psf_sub:
+                        im_res = pca_psf_subtraction(fake*mask,
+                                                    parang,
+                                                    self.m_pca_number,
+                                                    self.m_extra_rot)
+                    else:
+                        im_res = adi_psf_subtraction(fake*mask,
+                                                    parang,
+                                                    self.m_extra_rot)
 
                     if self.m_pca_out_port is not None:
                         if count == 1 and iteration == 1:
