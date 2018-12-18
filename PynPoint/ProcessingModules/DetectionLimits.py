@@ -35,6 +35,7 @@ class ContrastCurveModule(ProcessingModule):
                  angle=(0., 360., 60.),
                  magnitude=(7.5, 1.),
                  sigma=5.,
+                 constant_fpf = True,
                  accuracy=1e-1,
                  psf_scaling=1.,
                  aperture=0.05,
@@ -133,6 +134,7 @@ class ContrastCurveModule(ProcessingModule):
         self.m_psf_in_tag = psf_in_tag
 
         self.m_do_psf_sub = do_psf_sub
+        self.m_constant_fpf = constant_fpf
 
         self.m_separation = separation
         self.m_angle = angle
@@ -222,8 +224,11 @@ class ContrastCurveModule(ProcessingModule):
         sys.stdout.flush()
 
         for i, sep in enumerate(pos_r):
-            #fpf_threshold = student_fpf(self.m_sigma, sep, self.m_aperture, self.m_ignore)
-            fpf_threshold = gaussian_fpf(self.m_sigma)
+            if self.m_constant_fpf:
+                fpf_threshold = gaussian_fpf(self.m_sigma)
+            else:
+                fpf_threshold = student_fpf(self.m_sigma, sep, self.m_aperture, self.m_ignore)
+
             fake_fpf[i] = fpf_threshold
 
             sys.stdout.write('fpf = {:f} for sep = {:f}'.format(fpf_threshold,sep))
