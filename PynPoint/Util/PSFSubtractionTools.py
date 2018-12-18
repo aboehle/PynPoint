@@ -64,7 +64,7 @@ def adi_psf_subtraction(images,
     :rtype: ndarray
     """
 
-    residuals = images - np.median(images,axis=0)
+    residuals = images #- np.median(images,axis=0)
 
     for j, item in enumerate(-1.*parang):
         residuals[j, ] = rotate(residuals[j, ], item+extra_rot, reshape=False)
