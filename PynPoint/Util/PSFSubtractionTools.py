@@ -60,7 +60,7 @@ def adi_psf_subtraction(images,
     :type parang: ndarray
     :param extra_rot: Additional rotation angle of the images (deg).
     :type extra_rot: float
-    :param adi_psf_sub: determines the way that frames are combined before subtracting ('median' or 'mean')
+    :param adi_psf_sub: determines the way that frames are combined both for subtraction and the final frame combination ('median' or 'mean')
 
     :return: Mean residuals of the PSF subtraction.
     :rtype: ndarray
@@ -74,4 +74,7 @@ def adi_psf_subtraction(images,
     for j, item in enumerate(-1.*parang):
         residuals[j, ] = rotate(residuals[j, ], item+extra_rot, reshape=False)
 
-    return np.mean(residuals, axis=0)
+    if adi_sub == 'mean':
+        return np.mean(residuals, axis=0)
+    elif adi_sub == 'median':
+        return np.median(residuals, axis=0)
