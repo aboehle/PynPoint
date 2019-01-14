@@ -50,7 +50,8 @@ def pca_psf_subtraction(images,
 
 def adi_psf_subtraction(images,
                         parang,
-                        extra_rot):
+                        extra_rot,
+                        adi_sub):
     """
 
     :param images: Stack of images, also used as reference images.
@@ -59,12 +60,16 @@ def adi_psf_subtraction(images,
     :type parang: ndarray
     :param extra_rot: Additional rotation angle of the images (deg).
     :type extra_rot: float
+    :param adi_psf_sub: determines the way that frames are combined before subtracting ('median' or 'mean')
 
     :return: Mean residuals of the PSF subtraction.
     :rtype: ndarray
     """
 
-    residuals = images - np.mean(images,axis=0)
+    if adi_sub == 'mean':
+        residuals = images - np.mean(images,axis=0)
+    elif adi_sub == 'median':
+        residuals = images - np.median(images, axis=0)
 
     for j, item in enumerate(-1.*parang):
         residuals[j, ] = rotate(residuals[j, ], item+extra_rot, reshape=False)

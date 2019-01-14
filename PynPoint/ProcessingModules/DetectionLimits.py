@@ -31,6 +31,7 @@ class ContrastCurveModule(ProcessingModule):
                  contrast_map_out_tag = "contrast_map",
                  fpf_out_tag = None,
                  do_psf_sub = True,
+                 adi_sub = 'mean',
                  separation=(0.1, 1., 0.01),
                  angle=(0., 360., 60.),
                  magnitude=(7.5, 1.),
@@ -135,6 +136,7 @@ class ContrastCurveModule(ProcessingModule):
 
         self.m_do_psf_sub = do_psf_sub
         self.m_constant_fpf = constant_fpf
+        self.m_adi_sub = adi_sub
 
         self.m_separation = separation
         self.m_angle = angle
@@ -278,7 +280,8 @@ class ContrastCurveModule(ProcessingModule):
                     else:
                         im_res = adi_psf_subtraction(fake*mask,
                                                     parang,
-                                                    self.m_extra_rot)
+                                                    self.m_extra_rot,
+                                                    self.m_adi_sub)
 
                     if self.m_pca_out_port is not None:
                         if count == 1 and iteration == 1:
