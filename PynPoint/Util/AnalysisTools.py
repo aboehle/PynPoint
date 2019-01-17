@@ -34,6 +34,7 @@ def false_alarm(image, x_pos, y_pos, size, ignore):
 
     x_min, x_max = 176.5,204.7
     y_min, y_max = 2.955,18.445
+
     center = (np.size(image, 0)/2., np.size(image, 1)/2.)
     radius = math.sqrt((center[0]-y_pos)**2.+(center[1]-x_pos)**2.)
 
@@ -57,7 +58,7 @@ def false_alarm(image, x_pos, y_pos, size, ignore):
         y_tmp = center[0] + (x_pos-center[1])*math.sin(theta) + \
                             (y_pos-center[0])*math.cos(theta)
 
-        if (x_tmp > (x_min-aperture)) & (x_tmp < (x_max+aperture)) %  (y_tmp > (y_min-aperture)) & (y_tmp < (y_max+aperture)):  # if x/y inside exclusion region
+        if (x_tmp > (x_min-size)) & (x_tmp < (x_max+size)) %  (y_tmp > (y_min-size)) & (y_tmp < (y_max+size)):  # if x/y inside exclusion region
             num_ap -= 1
             badidx.append(i)
         else:
