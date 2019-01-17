@@ -32,8 +32,8 @@ def false_alarm(image, x_pos, y_pos, size, ignore):
     :rtype: float, float, float
     """
 
-    x_min, x_max = 175.5,203.7
-    y_min, y_max = 1.955,17.445
+    x_min, x_max = 176.,206.
+    y_min, y_max = 3.,17.
 
     center = (np.size(image, 0)/2., np.size(image, 1)/2.)
     radius = math.sqrt((center[0]-y_pos)**2.+(center[1]-x_pos)**2.)
@@ -58,7 +58,7 @@ def false_alarm(image, x_pos, y_pos, size, ignore):
         y_tmp = center[0] + (x_pos-center[1])*math.sin(theta) + \
                             (y_pos-center[0])*math.cos(theta)
 
-        if (x_tmp > (x_min-size)) & (x_tmp < (x_max+size)) %  (y_tmp > (y_min-size)) & (y_tmp < (y_max+size)):  # if x/y inside exclusion region
+        if (x_tmp > (x_min-size)) & (x_tmp < (x_max+size)) &  (y_tmp > (y_min-size)) & (y_tmp < (y_max+size)):  # if x/y inside exclusion region
             num_ap -= 1
             badidx.append(i)
         else:
@@ -66,7 +66,8 @@ def false_alarm(image, x_pos, y_pos, size, ignore):
             phot_table = aperture_photometry(image, aperture, method='exact')
             ap_phot[i] = phot_table['aperture_sum']
 
-    print ap_theta[np.array(badidx,dtype=int)]
+    print ap_theta[np.array(badidx,dtype=int)]*180./np.pi
+
     ap_phot = np.delete(ap_phot, np.array(badidx,dtype=int))
 
     noise = np.std(ap_phot[1:]) * math.sqrt(1.+1./float(num_ap-1))

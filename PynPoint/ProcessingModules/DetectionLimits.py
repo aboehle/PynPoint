@@ -243,8 +243,6 @@ class ContrastCurveModule(ProcessingModule):
                 x_fake = center[0] + sep*math.cos(np.radians(ang+90.-self.m_extra_rot))
                 y_fake = center[1] + sep*math.sin(np.radians(ang+90.-self.m_extra_rot))
 
-                print x_fake,y_fake
-
                 num_mag = np.size(fake_mag[i, 0:j])
                 num_nan = np.size(np.where(np.isnan(fake_mag[i, 0:j])))
 
