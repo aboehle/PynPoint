@@ -66,8 +66,8 @@ def false_alarm(image, x_pos, y_pos, size, ignore):
             phot_table = aperture_photometry(image, aperture, method='exact')
             ap_phot[i] = phot_table['aperture_sum']
 
-    print ap_theta[np.array(badidx)]
-    ap_phot = np.delete(ap_phot, np.array(badidx))
+    print ap_theta[np.array(badidx,dtype=int)]
+    ap_phot = np.delete(ap_phot, np.array(badidx,dtype=int))
 
     noise = np.std(ap_phot[1:]) * math.sqrt(1.+1./float(num_ap-1))
     t_test = (ap_phot[0] - np.mean(ap_phot[1:])) / noise
