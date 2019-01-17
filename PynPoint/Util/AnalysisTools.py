@@ -32,8 +32,8 @@ def false_alarm(image, x_pos, y_pos, size, ignore):
     :rtype: float, float, float
     """
 
-    x_min, x_max = 176.5,204.7
-    y_min, y_max = 2.955,18.445
+    x_min, x_max = 175.5,203.7
+    y_min, y_max = 1.955,17.445
 
     center = (np.size(image, 0)/2., np.size(image, 1)/2.)
     radius = math.sqrt((center[0]-y_pos)**2.+(center[1]-x_pos)**2.)
