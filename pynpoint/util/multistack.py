@@ -66,6 +66,12 @@ class StackReader(TaskCreator):
         while i < nimages:
             j = min((i + self.m_stack_size), nimages)
 
+            # lock mutex and read data
+            with self.m_data_mutex:
+                # read images from i to j
+                print(i)
+                tmp_data = self.m_data_in_port[i:j, ]
+
             # first dimension (start, stop, step)
             stack_slice = [(i, j, None)]
 
@@ -74,12 +80,7 @@ class StackReader(TaskCreator):
                 stack_slice.append((None, None, None))
 
             param = (self.m_result_shape, tuple(stack_slice))
-
-            # lock mutex and read data
-            with self.m_data_mutex:
-                # read images from i to j
-                #tmp_data = self.m_data_in_port[i:j, ]
-                self.m_task_queue.put(TaskInput(self.m_data_in_port[i:j, ], param))
+            self.m_task_queue.put(TaskInput(tmp_data, param))
 
             i = j
 
