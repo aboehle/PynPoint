@@ -379,7 +379,7 @@ class MultiprocessingCapsule(metaclass=ABCMeta):
         self.m_num_proc = num_proc
 
         # database mutex
-        self.m_data_mutex = multiprocessing.Lock()
+        self.m_data_mutex = multiprocessing.RLock()
 
         # create reader
         self.m_creator = self.init_creator(image_in_port)
