@@ -342,8 +342,12 @@ class TaskWriter(multiprocessing.Process):
             if poison_pill_case == 2:
                 continue
 
-            with self.m_data_mutex:
+            #with self.m_data_mutex:
+            self.m_data_mutex.acquire()
+            try:
                 self.m_data_out_port[to_slice(next_result.m_position)] = next_result.m_data_array
+            finally:
+                self.m_data_mutex.release()
 
             self.m_result_queue.task_done()
 
@@ -379,7 +383,7 @@ class MultiprocessingCapsule(metaclass=ABCMeta):
         self.m_num_proc = num_proc
 
         # database mutex
-        self.m_data_mutex = multiprocessing.RLock()
+        self.m_data_mutex = multiprocessing.Lock()
 
         # create reader
         self.m_creator = self.init_creator(image_in_port)
