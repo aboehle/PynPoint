@@ -179,7 +179,7 @@ class TestResizing:
         #    fits.writeto(f'../../image1_{i}.fits', data[i, ], overwrite=True)
         #    fits.writeto(f'../../image2_{i}.fits', data_multi[i, ], overwrite=True)
 
-        print(np.unique(bad_frames))
+        print(np.unique(bad_frames[:,0]))
 
         assert np.allclose(data, data_multi, rtol=limit, atol=0.)
         assert data.shape == data_multi.shape
