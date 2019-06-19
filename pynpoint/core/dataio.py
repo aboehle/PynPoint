@@ -73,6 +73,15 @@ class DataStorage:
             self.m_data_bank.close()
             self.m_open = False
 
+    def swmr_mode(self):
+        """
+        Switches file mode to SWMR if not already in that mode.
+        :return:
+        """
+
+        if self.m_open and not self.m_data_bank.swmr_mode:
+            self.m_data_bank.swmr_mode = True
+
 
 class Port(metaclass=ABCMeta):
     """
@@ -1319,3 +1328,11 @@ class OutputPort(Port):
         """
 
         self._m_data_storage.m_data_bank.flush()
+
+    def swmr_mode(self):
+        """
+        Sets data storage to SWMR mode if it is not already in this mode.
+        :return:
+        """
+
+        self._m_data_storage.swmr_mode()

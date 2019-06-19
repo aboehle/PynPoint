@@ -621,6 +621,7 @@ class ProcessingModule(PypelineModule, metaclass=ABCMeta):
             image_out_port.set_all(data=np.zeros(out_shape),
                                    data_dim=len(result_shape)+1,
                                    keep_attributes=False)
+            image_out_port.swmr_mode()
 
             capsule = StackProcessingCapsule(image_in_port=image_in_port,
                                              image_out_port=image_out_port,
