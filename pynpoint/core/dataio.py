@@ -44,7 +44,7 @@ class DataStorage:
         self.m_data_bank = None
         self.m_open = False
 
-    def open_connection(self:
+    def open_connection(self):
         """
         Opens the connection to the HDF5 file by opening an old file or creating a new one.
 
