@@ -342,8 +342,12 @@ class TaskWriter(multiprocessing.Process):
             if poison_pill_case == 2:
                 continue
 
-            with self.m_data_mutex:
+            #with self.m_data_mutex:
+            self.m_data_mutex.acquire()
+            try:
                 self.m_data_out_port[to_slice(next_result.m_position)] = next_result.m_data_array
+            finally:
+                self.m_data_mutex.release()
 
             self.m_result_queue.task_done()
 

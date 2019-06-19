@@ -60,7 +60,8 @@ class StackReader(TaskCreator):
             None
         """
 
-        nimages = self.m_data_in_port.get_shape()[0]
+        with self.m_data_mutex:
+            nimages = self.m_data_in_port.get_shape()[0]
 
         i = 0
         while i < nimages:
