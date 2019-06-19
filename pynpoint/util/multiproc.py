@@ -344,7 +344,6 @@ class TaskWriter(multiprocessing.Process):
 
             with self.m_data_mutex:
                 self.m_data_out_port[to_slice(next_result.m_position)] = next_result.m_data_array
-                self.m_data_out_port.flush()
 
             self.m_result_queue.task_done()
 
