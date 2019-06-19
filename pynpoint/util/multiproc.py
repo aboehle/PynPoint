@@ -74,7 +74,7 @@ class TaskCreator(multiprocessing.Process, metaclass=ABCMeta):
     """
 
     def __init__(self,
-                 data_port_in,
+                 #data_port_in,
                  tasks_queue_in,
                  data_mutex_in,
                  num_proc):
@@ -100,7 +100,6 @@ class TaskCreator(multiprocessing.Process, metaclass=ABCMeta):
 
         multiprocessing.Process.__init__(self)
 
-        self.m_data_in_port = data_port_in
         self.m_task_queue = tasks_queue_in
         self.m_data_mutex = data_mutex_in
         self.m_num_proc = num_proc
@@ -343,7 +342,9 @@ class TaskWriter(multiprocessing.Process):
                 continue
 
             with self.m_data_mutex:
+                self.m_data_out_port.open_port()
                 self.m_data_out_port[to_slice(next_result.m_position)] = next_result.m_data_array
+                self.m_data_out_port.close_port()
 
             self.m_result_queue.task_done()
 
@@ -354,7 +355,8 @@ class MultiprocessingCapsule(metaclass=ABCMeta):
     """
 
     def __init__(self,
-                 image_in_port,
+                 input_tag,
+                 database,
                  image_out_port,
                  num_proc):
         """
@@ -382,7 +384,7 @@ class MultiprocessingCapsule(metaclass=ABCMeta):
         self.m_data_mutex = multiprocessing.Lock()
 
         # create reader
-        self.m_creator = self.init_creator(image_in_port)
+        self.m_creator = self.init_creator(input_tag,database)
 
         # create processors
         self.m_task_processors = self.create_processors()
@@ -406,7 +408,8 @@ class MultiprocessingCapsule(metaclass=ABCMeta):
 
     @abstractmethod
     def init_creator(self,
-                     image_in_port):
+                     input_tag,
+                     database):
         """
         Function that is called from the constructor to create a
         :class:`~pynpoint.util.multiproc.TaskCreator`.

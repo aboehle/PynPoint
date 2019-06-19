@@ -44,7 +44,7 @@ class DataStorage:
         self.m_data_bank = None
         self.m_open = False
 
-    def open_connection(self):
+    def open_connection(self:
         """
         Opens the connection to the HDF5 file by opening an old file or creating a new one.
 
@@ -55,7 +55,7 @@ class DataStorage:
         """
 
         if not self.m_open:
-            self.m_data_bank = h5py.File(self._m_location, mode='a')
+            self.m_data_bank = h5py.File(self._m_location, mode='a', libver='latest')
             self.m_open = True
 
     def close_connection(self):
@@ -73,7 +73,7 @@ class DataStorage:
             self.m_data_bank.close()
             self.m_open = False
 
-    def swmr_mode(self):
+    def set_swmr_mode(self):
         """
         Switches file mode to SWMR if not already in that mode.
         :return:
@@ -1329,10 +1329,10 @@ class OutputPort(Port):
 
         self._m_data_storage.m_data_bank.flush()
 
-    def swmr_mode(self):
+    def set_swmr_mode(self):
         """
         Sets data storage to SWMR mode if it is not already in this mode.
         :return:
         """
 
-        self._m_data_storage.swmr_mode()
+        self._m_data_storage.set_swmr_mode()

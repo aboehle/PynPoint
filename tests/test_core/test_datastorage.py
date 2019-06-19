@@ -66,3 +66,20 @@ class TestDataStorage:
         assert storage.m_open is False
 
         os.remove(self.test_data)
+
+    def test_swmr_mode(self):
+
+        storage = DataStorage(self.test_data)
+
+        storage.open_connection()
+        assert storage.m_open is True
+
+        assert storage.m_data_bank.swmr_mode is False
+
+        storage.set_swmr_mode()
+        assert storage.m_data_bank.swmr_mode is True
+
+        storage.close_connection()
+        assert storage.m_open is False
+
+        os.remove(self.test_data)

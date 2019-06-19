@@ -5,6 +5,7 @@ Utilities for multiprocessing of stacks of images.
 import sys
 
 import numpy as np
+import h5py
 
 from pynpoint.util.module import update_arguments
 from pynpoint.util.multiproc import TaskInput, TaskResult, TaskCreator, TaskProcessor, \
@@ -18,7 +19,8 @@ class StackReader(TaskCreator):
     """
 
     def __init__(self,
-                 data_port_in,
+                 input_tag,
+                 database,
                  tasks_queue_in,
                  data_mutex_in,
                  num_proc,
@@ -47,10 +49,12 @@ class StackReader(TaskCreator):
             None
         """
 
-        super(StackReader, self).__init__(data_port_in, tasks_queue_in, data_mutex_in, num_proc)
+        super(StackReader, self).__init__(tasks_queue_in, data_mutex_in, num_proc)
 
         self.m_stack_size = stack_size
         self.m_result_shape = result_shape
+        self.m_database = database
+        self.m_input_tag = input_tag
 
     def run(self):
         """
@@ -61,7 +65,8 @@ class StackReader(TaskCreator):
         """
 
         with self.m_data_mutex:
-            nimages = self.m_data_in_port.get_shape()[0]
+            f_in = h5py.File(self.m_database, mode='r', libver='latest',swmr=True)
+            nimages = f_in[self.m_input_tag].shape[0]
 
         i = 0
         while i < nimages:
@@ -70,7 +75,7 @@ class StackReader(TaskCreator):
             # lock mutex and read data
             with self.m_data_mutex:
                 # read images from i to j
-                tmp_data = self.m_data_in_port[i:j, ]
+                tmp_data = f_in[self.m_input_tag][i:j, ]
 
             # first dimension (start, stop, step)
             stack_slice = [(i, j, None)]
@@ -86,6 +91,7 @@ class StackReader(TaskCreator):
 
         self.create_poison_pills()
 
+        f_in.close()
 
 class StackTaskProcessor(TaskProcessor):
     """
@@ -174,7 +180,9 @@ class StackProcessingCapsule(MultiprocessingCapsule):
     """
 
     def __init__(self,
-                 image_in_port,
+                 #image_in_port,
+                 input_tag,
+                 database,
                  image_out_port,
                  num_proc,
                  function,
@@ -214,7 +222,7 @@ class StackProcessingCapsule(MultiprocessingCapsule):
         self.m_result_shape = result_shape
         self.m_nimages = nimages
 
-        super(StackProcessingCapsule, self).__init__(image_in_port, image_out_port, num_proc)
+        super(StackProcessingCapsule, self).__init__(input_tag, database, image_out_port, num_proc)
 
     def create_processors(self):
         """
@@ -237,7 +245,9 @@ class StackProcessingCapsule(MultiprocessingCapsule):
         return processors
 
     def init_creator(self,
-                     image_in_port):
+                     input_tag,
+                     database):
+                     #image_in_port):
         """
         Parameters
         ----------
@@ -250,7 +260,9 @@ class StackProcessingCapsule(MultiprocessingCapsule):
             Reader of stacks of images.
         """
 
-        return StackReader(data_port_in=image_in_port,
+        return StackReader(#data_port_in=image_in_port,
+                           input_tag=input_tag,
+                           database=database,
                            tasks_queue_in=self.m_tasks_queue,
                            data_mutex_in=self.m_data_mutex,
                            num_proc=self.m_num_proc,

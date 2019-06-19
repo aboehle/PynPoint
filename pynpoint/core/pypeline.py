@@ -203,7 +203,7 @@ class Pypeline:
             return attributes
 
         def _write_config(attributes):
-            hdf = h5py.File(self._m_working_place+'/PynPoint_database.hdf5', 'a')
+            hdf = h5py.File(self._m_working_place+'/PynPoint_database.hdf5', 'a', libver='latest')
 
             if 'config' in hdf:
                 del hdf['config']
