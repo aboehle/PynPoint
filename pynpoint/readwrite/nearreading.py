@@ -41,7 +41,7 @@ class NearReadingModule(ReadingModule):
                  name_in: str,
                  input_dir: str = None,
                  chopa_out_tag: str = 'chopa',
-                 chopb_out_tag: str = 'chopb',
+                 #chopb_out_tag: str = 'chopb',
                  subtract: bool = False,
                  crop: Union[Tuple[int, int, float], Tuple[None, None, float]] = None,
                  combine: str = None):
@@ -80,7 +80,7 @@ class NearReadingModule(ReadingModule):
         super(NearReadingModule, self).__init__(name_in, input_dir)
 
         self.m_chopa_out_port = self.add_output_port(chopa_out_tag)
-        self.m_chopb_out_port = self.add_output_port(chopb_out_tag)
+        #self.m_chopb_out_port = self.add_output_port(chopb_out_tag)
 
         self.m_subtract = subtract
         self.m_crop = crop
@@ -357,8 +357,8 @@ class NearReadingModule(ReadingModule):
         # clear the output ports
         self.m_chopa_out_port.del_all_data()
         self.m_chopa_out_port.del_all_attributes()
-        self.m_chopb_out_port.del_all_data()
-        self.m_chopb_out_port.del_all_attributes()
+        #self.m_chopb_out_port.del_all_data()
+        #self.m_chopb_out_port.del_all_attributes()
 
         # uncompress the FITS files if needed
         self.uncompress()
@@ -392,7 +392,7 @@ class NearReadingModule(ReadingModule):
 
             if self.m_subtract:
                 chopa = chopa - chopb
-                chopb = -1.*np.copy(chopa)
+                #chopb = -1.*np.copy(chopa)
 
             if self.m_crop is not None:
                 chopa = crop_image(chopa,
@@ -400,31 +400,31 @@ class NearReadingModule(ReadingModule):
                                    size=self.m_crop[2],
                                    copy=False)
 
-                chopb = crop_image(chopb,
-                                   center=self.m_crop[0:2],
-                                   size=self.m_crop[2],
-                                   copy=False)
+                #chopb = crop_image(chopb,
+                #                   center=self.m_crop[0:2],
+                #                   size=self.m_crop[2],
+                #                   copy=False)
 
             if self.m_combine is not None:
 
                 if self.m_combine == 'mean':
                     chopa = np.mean(chopa, axis=0)
-                    chopb = np.mean(chopb, axis=0)
+                    #chopb = np.mean(chopb, axis=0)
 
                 elif self.m_combine == 'median':
                     chopa = np.median(chopa, axis=0)
-                    chopb = np.median(chopb, axis=0)
+                    #chopb = np.median(chopb, axis=0)
 
                 header[self._m_config_port.get_attribute('NFRAMES')] = 1
 
             # append the images of chop A and B
             self.m_chopa_out_port.append(chopa, data_dim=3)
-            self.m_chopb_out_port.append(chopb, data_dim=3)
+            #self.m_chopb_out_port.append(chopb, data_dim=3)
 
             # starting value for the INDEX attribute
             first_index = 0
 
-            for port in (self.m_chopa_out_port, self.m_chopb_out_port):
+            for port in (self.m_chopa_out_port,):#, self.m_chopb_out_port):
 
                 # set the static attributes
                 set_static_attr(fits_file=filename,
@@ -457,7 +457,7 @@ class NearReadingModule(ReadingModule):
 
         # add history information
         self.m_chopa_out_port.add_history('NearReadingModule', 'Chop A')
-        self.m_chopb_out_port.add_history('NearReadingModule', 'Chop B')
+        #self.m_chopb_out_port.add_history('NearReadingModule', 'Chop B')
 
         # close all connections to the database
         self.m_chopa_out_port.close_port()
