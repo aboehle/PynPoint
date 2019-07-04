@@ -22,7 +22,6 @@ from pynpoint.util.multipca import PcaMultiprocessingCapsule
 from pynpoint.util.psf import pca_psf_subtraction
 from pynpoint.util.residuals import combine_residuals
 
-@profile
 class PcaPsfSubtractionModule(ProcessingModule):
     """
     Pipeline module for PSF subtraction with principal component analysis (PCA). The residuals are
@@ -269,6 +268,7 @@ class PcaPsfSubtractionModule(ProcessingModule):
                 self.m_res_arr_out_ports[pca_number].del_all_data()
                 self.m_res_arr_out_ports[pca_number].del_all_attributes()
 
+    @profile
     @typechecked
     def run(self) -> None:
         """
