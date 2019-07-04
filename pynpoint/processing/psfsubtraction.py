@@ -95,7 +95,7 @@ class PcaPsfSubtractionModule(ProcessingModule):
         self.m_extra_rot = extra_rot
         self.m_subtract_mean = subtract_mean
 
-        self.m_pca = PCA(n_components=np.amax(self.m_components), svd_solver='arpack')
+        self.m_pca = PCA(n_components=np.amax(self.m_components), svd_solver='arpack', copy=False)
 
         self.m_reference_in_port = self.add_input_port(reference_in_tag)
         self.m_star_in_port = self.add_input_port(images_in_tag)

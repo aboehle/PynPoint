@@ -65,7 +65,7 @@ def pca_psf_subtraction(images: np.ndarray,
         pca_sklearn.fit(im_reshape)
 
     else:
-        im_reshape = np.copy(images)
+        im_reshape = images
 
     # create pca representation
     zeros = np.zeros((pca_sklearn.n_components - pca_number, im_reshape.shape[0]))
