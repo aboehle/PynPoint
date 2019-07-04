@@ -22,7 +22,7 @@ from pynpoint.util.multipca import PcaMultiprocessingCapsule
 from pynpoint.util.psf import pca_psf_subtraction
 from pynpoint.util.residuals import combine_residuals
 
-
+@profile
 class PcaPsfSubtractionModule(ProcessingModule):
     """
     Pipeline module for PSF subtraction with principal component analysis (PCA). The residuals are
@@ -297,7 +297,7 @@ class PcaPsfSubtractionModule(ProcessingModule):
 
         # select the first image and get the unmasked image indices
         im_star = star_data[0, ].reshape(-1)
-        indices = np.where(im_star != 0.)[0]
+        indices = np.where(im_star != 0.)[0] #None
 
         # reshape the star data and select the unmasked pixels
         star_reshape = star_data.reshape(im_shape[0], im_shape[1]*im_shape[2])
