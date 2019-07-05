@@ -11,6 +11,7 @@ from copy import deepcopy
 from typing import Union, List, Tuple
 
 import numpy as np
+import tracemalloc
 
 from scipy.ndimage import rotate
 from sklearn.decomposition import PCA
@@ -94,7 +95,7 @@ class PcaPsfSubtractionModule(ProcessingModule):
         self.m_extra_rot = extra_rot
         self.m_subtract_mean = subtract_mean
 
-        self.m_pca = PCA(n_components=np.amax(self.m_components), svd_solver='arpack', copy=False)
+        self.m_pca = PCA(n_components=np.amax(self.m_components), svd_solver='arpack')
 
         self.m_reference_in_port = self.add_input_port(reference_in_tag)
         self.m_star_in_port = self.add_input_port(images_in_tag)
@@ -191,6 +192,7 @@ class PcaPsfSubtractionModule(ProcessingModule):
 
         capsule.run()
 
+    @profile
     def _run_single_processing(self, star_reshape, im_shape, indices):
         """
         Internal function to create the residuals, derotate the images, and write the output
@@ -268,8 +270,8 @@ class PcaPsfSubtractionModule(ProcessingModule):
                 self.m_res_arr_out_ports[pca_number].del_all_data()
                 self.m_res_arr_out_ports[pca_number].del_all_attributes()
 
-    @profile
     @typechecked
+    @profile
     def run(self) -> None:
         """
         Run method of the module. Subtracts the mean of the image stack from all images, reshapes
@@ -282,6 +284,9 @@ class PcaPsfSubtractionModule(ProcessingModule):
         NoneType
             None
         """
+
+        #tracemalloc.start()
+        #snap1 = tracemalloc.take_snapshot()
 
         cpu = self._m_config_port.get_attribute('CPU')
 
@@ -303,6 +308,8 @@ class PcaPsfSubtractionModule(ProcessingModule):
         star_reshape = star_data.reshape(im_shape[0], im_shape[1]*im_shape[2])
         #star_reshape = star_reshape[:, indices]
 
+        #snap2 = tracemalloc.take_snapshot()
+
         if self.m_reference_in_port.tag == self.m_star_in_port.tag:
             ref_reshape = deepcopy(star_reshape)
 
@@ -317,6 +324,8 @@ class PcaPsfSubtractionModule(ProcessingModule):
             # reshape reference data and select the unmasked pixels
             ref_reshape = ref_data.reshape(ref_shape[0], ref_shape[1]*ref_shape[2])
             #ref_reshape = ref_reshape[:, indices]
+
+        #snap3 = tracemalloc.take_snapshot()
 
         # subtract mean from science data, if required
         if self.m_subtract_mean:
@@ -386,6 +395,14 @@ class PcaPsfSubtractionModule(ProcessingModule):
             self.m_res_rot_mean_clip_out_port.add_history('PcaPsfSubtractionModule', history)
 
         self.m_star_in_port.close_port()
+
+        #snap4 = tracemalloc.take_snapshot()
+        #top_stats = snap4.statistics('lineno')
+        #print("[ run, top 5 ]")
+        #for stat in top_stats[:5]:
+        #    print(stat)
+        #total = sum(stat.size for stat in top_stats)
+        #print("Total allocated size: %.1f KiB" % (total / 1024))
 
 
 class ClassicalADIModule(ProcessingModule):
