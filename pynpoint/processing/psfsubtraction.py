@@ -11,7 +11,6 @@ from copy import deepcopy
 from typing import Union, List, Tuple
 
 import numpy as np
-import tracemalloc
 
 from scipy.ndimage import rotate
 from sklearn.decomposition import PCA
@@ -192,7 +191,6 @@ class PcaPsfSubtractionModule(ProcessingModule):
 
         capsule.run()
 
-    #@profile
     def _run_single_processing(self, star_reshape, im_shape, indices):
         """
         Internal function to create the residuals, derotate the images, and write the output
@@ -271,7 +269,6 @@ class PcaPsfSubtractionModule(ProcessingModule):
                 self.m_res_arr_out_ports[pca_number].del_all_attributes()
 
     @typechecked
-    #@profile
     def run(self) -> None:
         """
         Run method of the module. Subtracts the mean of the image stack from all images, reshapes
@@ -284,9 +281,6 @@ class PcaPsfSubtractionModule(ProcessingModule):
         NoneType
             None
         """
-
-        #tracemalloc.start()
-        #snap1 = tracemalloc.take_snapshot()
 
         cpu = self._m_config_port.get_attribute('CPU')
 
@@ -302,13 +296,12 @@ class PcaPsfSubtractionModule(ProcessingModule):
 
         # select the first image and get the unmasked image indices
         im_star = star_data[0, ].reshape(-1)
-        indices = None #np.where(im_star != 0.)[0]
+        indices = np.where(im_star != 0.)[0]
+        #indices = None
 
         # reshape the star data and select the unmasked pixels
         star_reshape = star_data.reshape(im_shape[0], im_shape[1]*im_shape[2])
-        #star_reshape = star_reshape[:, indices]
-
-        #snap2 = tracemalloc.take_snapshot()
+        star_reshape = star_reshape[:, indices]
 
         if self.m_reference_in_port.tag == self.m_star_in_port.tag:
             ref_reshape = deepcopy(star_reshape)
@@ -323,9 +316,7 @@ class PcaPsfSubtractionModule(ProcessingModule):
 
             # reshape reference data and select the unmasked pixels
             ref_reshape = ref_data.reshape(ref_shape[0], ref_shape[1]*ref_shape[2])
-            #ref_reshape = ref_reshape[:, indices]
-
-        #snap3 = tracemalloc.take_snapshot()
+            ref_reshape = ref_reshape[:, indices]
 
         # subtract mean from science data, if required
         if self.m_subtract_mean:
@@ -358,7 +349,7 @@ class PcaPsfSubtractionModule(ProcessingModule):
             pc_size = self.m_pca.components_.shape[0]
 
             basis = np.zeros((pc_size, im_shape[1]*im_shape[2]))
-            #basis[:, indices] = self.m_pca.components_
+            basis[:, indices] = self.m_pca.components_
             basis = basis.reshape((pc_size, im_shape[1], im_shape[2]))
 
             self.m_basis_out_port.set_all(basis)

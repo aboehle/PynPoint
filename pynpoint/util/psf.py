@@ -5,7 +5,6 @@ Functions for PSF subtraction.
 from typing import Tuple
 
 import numpy as np
-import tracemalloc
 
 from scipy.ndimage import rotate
 from sklearn.decomposition import PCA
@@ -47,8 +46,6 @@ def pca_psf_subtraction(images: np.ndarray,
         Derotated residuals of the PSF subtraction.
     """
 
-    #tracemalloc.start()
-
     if pca_sklearn is None:
         pca_sklearn = PCA(n_components=pca_number, svd_solver='arpack')
 
@@ -72,8 +69,6 @@ def pca_psf_subtraction(images: np.ndarray,
     else:
         im_reshape = images
 
-    #snap1 = tracemalloc.take_snapshot()
-
     # create pca representation
     zeros = np.zeros((pca_sklearn.n_components - pca_number, im_reshape.shape[0]))
     pca_rep = np.matmul(pca_sklearn.components_[:pca_number], im_reshape.T)
@@ -82,12 +77,8 @@ def pca_psf_subtraction(images: np.ndarray,
     # create psf model
     psf_model = pca_sklearn.inverse_transform(pca_rep)
 
-    #snap2 = tracemalloc.take_snapshot()
-
     # create original array size
     residuals = np.zeros((im_shape[0], im_shape[1]*im_shape[2]))
-
-    #snap3 = tracemalloc.take_snapshot()
 
     # subtract the psf model
     if indices is None:
@@ -98,12 +89,10 @@ def pca_psf_subtraction(images: np.ndarray,
     # reshape to the original image size
     residuals = residuals.reshape(im_shape)
 
-    snap4 = tracemalloc.take_snapshot()
-
     # derotate the images
-    #res_rot = np.zeros(residuals.shape)
-    #for j, item in enumerate(angles):
-    #    res_rot[j, ] = rotate(residuals[j, ], item, reshape=False)
+    res_rot = np.zeros(residuals.shape)
+    for j, item in enumerate(angles):
+        res_rot[j, ] = rotate(residuals[j, ], item, reshape=False)
 
     #snap5 = tracemalloc.take_snapshot()
     #top_stats = snap5.statistics('lineno')
@@ -113,4 +102,5 @@ def pca_psf_subtraction(images: np.ndarray,
     #total = sum(stat.size for stat in top_stats)
     #print("Total allocated size: %.1f KiB" % (total / 1024))
 
-    return residuals, residuals #res_rot
+    #return residuals, residuals
+    return residuals, res_rot
