@@ -11,28 +11,6 @@ from scipy.ndimage import rotate
 from sklearn.decomposition import PCA
 
 
-#@profile
-def pca_psf_model(im_reshape: np.ndarray,
-                  pca_number: int,
-                  pca_sklearn: PCA = None) -> np.ndarray:
-
-    # create pca representation
-    zeros = np.zeros((pca_sklearn.n_components - pca_number, im_reshape.shape[0]))
-    pca_rep = np.matmul(pca_sklearn.components_[:pca_number], im_reshape.T)
-    pca_rep = np.vstack((pca_rep, zeros)).T
-
-    # create psf model
-    psf_model = pca_sklearn.inverse_transform(pca_rep)
-
-    #snap5 = tracemalloc.take_snapshot()
-    #top_stats = snap5.statistics('lineno')
-    #print("[ pca_psf_model, top 5 ]")
-    #for stat in top_stats[:5]:
-    #    print(stat)
-    #total = sum(stat.size for stat in top_stats)
-    #print("Total allocated size: %.1f KiB" % (total / 1024))
-
-    return psf_model
 
 #@profile
 def pca_psf_subtraction(images: np.ndarray,
@@ -97,16 +75,12 @@ def pca_psf_subtraction(images: np.ndarray,
     #snap1 = tracemalloc.take_snapshot()
 
     # create pca representation
-    #zeros = np.zeros((pca_sklearn.n_components - pca_number, im_reshape.shape[0]))
-    #pca_rep = np.matmul(pca_sklearn.components_[:pca_number], im_reshape.T)
-    #pca_rep = np.vstack((pca_rep, zeros)).T
+    zeros = np.zeros((pca_sklearn.n_components - pca_number, im_reshape.shape[0]))
+    pca_rep = np.matmul(pca_sklearn.components_[:pca_number], im_reshape.T)
+    pca_rep = np.vstack((pca_rep, zeros)).T
 
     # create psf model
-    #psf_model = pca_sklearn.inverse_transform(pca_rep)
-
-    psf_model = pca_psf_model(im_reshape,
-                              pca_number,
-                              pca_sklearn)
+    psf_model = pca_sklearn.inverse_transform(pca_rep)
 
     #snap2 = tracemalloc.take_snapshot()
 
