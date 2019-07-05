@@ -268,8 +268,8 @@ class PcaPsfSubtractionModule(ProcessingModule):
                 self.m_res_arr_out_ports[pca_number].del_all_data()
                 self.m_res_arr_out_ports[pca_number].del_all_attributes()
 
-    @profile
     @typechecked
+    @profile
     def run(self) -> None:
         """
         Run method of the module. Subtracts the mean of the image stack from all images, reshapes
