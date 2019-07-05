@@ -297,11 +297,11 @@ class PcaPsfSubtractionModule(ProcessingModule):
 
         # select the first image and get the unmasked image indices
         im_star = star_data[0, ].reshape(-1)
-        indices = np.where(im_star != 0.)[0] #None
+        indices = None #np.where(im_star != 0.)[0]
 
         # reshape the star data and select the unmasked pixels
         star_reshape = star_data.reshape(im_shape[0], im_shape[1]*im_shape[2])
-        star_reshape = star_reshape[:, indices]
+        #star_reshape = star_reshape[:, indices]
 
         if self.m_reference_in_port.tag == self.m_star_in_port.tag:
             ref_reshape = deepcopy(star_reshape)
@@ -316,7 +316,7 @@ class PcaPsfSubtractionModule(ProcessingModule):
 
             # reshape reference data and select the unmasked pixels
             ref_reshape = ref_data.reshape(ref_shape[0], ref_shape[1]*ref_shape[2])
-            ref_reshape = ref_reshape[:, indices]
+            #ref_reshape = ref_reshape[:, indices]
 
         # subtract mean from science data, if required
         if self.m_subtract_mean:
@@ -349,7 +349,7 @@ class PcaPsfSubtractionModule(ProcessingModule):
             pc_size = self.m_pca.components_.shape[0]
 
             basis = np.zeros((pc_size, im_shape[1]*im_shape[2]))
-            basis[:, indices] = self.m_pca.components_
+            #basis[:, indices] = self.m_pca.components_
             basis = basis.reshape((pc_size, im_shape[1], im_shape[2]))
 
             self.m_basis_out_port.set_all(basis)
