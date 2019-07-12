@@ -196,6 +196,7 @@ def create_mask(im_shape: Tuple[int, int],
 
 
 @typechecked
+@profile
 def shift_image(image: np.ndarray,
                 shift_yx: Union[Tuple[float, float], np.ndarray],
                 interpolation: str,
