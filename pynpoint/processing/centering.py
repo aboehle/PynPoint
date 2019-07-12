@@ -637,6 +637,7 @@ class ShiftImagesModule(ProcessingModule):
             self.m_shift = (shift_xy[1], shift_xy[0])
 
     @typechecked
+    @profile
     def run(self) -> None:
         """
         Run method of the module. Shifts an image with a fifth order spline, bilinear, or a
