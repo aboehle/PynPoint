@@ -36,7 +36,8 @@ class FitsReadingModule(ReadingModule):
                  image_tag: str = 'im_arr',
                  overwrite: bool = True,
                  check: bool = True,
-                 filenames: Union[str, List[str]] = None) -> None:
+                 filenames: Union[str, List[str]] = None,
+                 parang_ext: bool = False) -> None:
         """
         Parameters
         ----------
@@ -74,6 +75,7 @@ class FitsReadingModule(ReadingModule):
         self.m_overwrite = overwrite
         self.m_check = check
         self.m_filenames = filenames
+        self.m_parang_ext = parang_ext
 
     @typechecked
     def read_single_file(self,
@@ -113,6 +115,10 @@ class FitsReadingModule(ReadingModule):
 
         else:
             self.m_image_out_port.append(images, data_dim=3)
+
+        if self.m_parang_ext:
+            parang = hdulist[1].data.byteswap().newbyteorder()
+            self.m_image_out_port.append_attribute_data('PARANG', parang)
 
         header = hdulist[0].header
 
