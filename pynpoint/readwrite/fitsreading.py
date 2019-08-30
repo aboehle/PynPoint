@@ -124,9 +124,8 @@ class FitsReadingModule(ReadingModule):
 
             if self.m_parang_ext:
                 parang = hdulist[1].data.byteswap().newbyteorder()
-                for p in parang:
-                    self.m_image_out_port.append_attribute_data('PARANG',
-                                                                p)
+                self.m_image_out_port.append_attribute_data('PARANG',
+                                                            parang)
 
         header = hdulist[0].header
 

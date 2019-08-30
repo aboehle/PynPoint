@@ -1124,8 +1124,12 @@ class OutputPort(Port):
 
         if self._check_status_and_activate():
 
-            self._append_key(tag=('header_' + self._m_tag + '/' + name),
-                             data=np.asarray([value, ]))
+            if isinstance(value,(np.ndarray,list)):
+                self._append_key(tag=('header_' + self._m_tag + '/' + name),
+                                 data=np.asarray(value))
+            else:
+                self._append_key(tag=('header_' + self._m_tag + '/' + name),
+                                 data=np.asarray([value, ]))
 
     def copy_attributes(self,
                         input_port):
