@@ -113,12 +113,19 @@ class FitsReadingModule(ReadingModule):
             self.m_image_out_port.set_all(images, data_dim=3)
             self.m_image_out_port.del_all_attributes()
 
+            if self.m_parang_ext:
+                parang = hdulist[1].data.byteswap().newbyteorder()
+                self.m_image_out_port.add_attribute('PARANG',
+                                                    parang,
+                                                    static=False)
+
         else:
             self.m_image_out_port.append(images, data_dim=3)
 
-        if self.m_parang_ext:
-            parang = hdulist[1].data.byteswap().newbyteorder()
-            self.m_image_out_port.append_attribute_data('PARANG', parang.resize(parang.shape[1]))
+            if self.m_parang_ext:
+                parang = hdulist[1].data.byteswap().newbyteorder()
+                self.m_image_out_port.append_attribute_data('PARANG',
+                                                            parang)
 
         header = hdulist[0].header
 
