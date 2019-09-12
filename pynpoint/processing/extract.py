@@ -187,7 +187,8 @@ class ExtractBinaryModule(ProcessingModule):
                  image_in_tag: str,
                  image_out_tag: str,
                  pos_center: Tuple[float, float],
-                 pos_binary: Tuple[float, float],
+                 sep_binary: float,
+                 pa_binary: float,
                  image_size: float = 2.,
                  search_size: float = 0.1,
                  filter_size: float = None) -> None:
@@ -223,11 +224,13 @@ class ExtractBinaryModule(ProcessingModule):
 
         super(ExtractBinaryModule, self).__init__(name_in)
 
-        self.m_image_in_port = self.add_input_port(image_in_tag)
-        self.m_image_out_port = self.add_output_port(image_out_tag)
+        # self.m_image_in_port = self.add_input_port(image_in_tag)
+        # self.m_image_out_port = self.add_output_port(image_out_tag)
 
         self.m_pos_center = (pos_center[1], pos_center[0])  # (y, x)
-        self.m_pos_binary = (pos_binary[1], pos_binary[0])  # (y, x)
+
+        self.m_sep_binary = sep_binary
+        self.m_pa_binary = pa_binary
 
         self.m_image_size = image_size
         self.m_search_size = search_size
@@ -250,14 +253,23 @@ class ExtractBinaryModule(ProcessingModule):
 
         pixscale = self.m_image_in_port.get_attribute('PIXSCALE')
         parang = self.m_image_in_port.get_attribute('PARANG')
+        pupil_pos = self.m_image_in_port.get_attribute('PUPIL')
+
+        angles = 180. + self.m_pa_binary - (parang - (90. + pupil_pos))
 
         positions = np.zeros((parang.shape[0], 2), dtype=np.int)
 
-        for i, item in enumerate(parang):
+        start_pos = [self.m_pos_center[0] + self.m_sep_binary/pixscale,   # (y, x)
+                     self.m_pos_center[1]]
+
+        for i, item in enumerate(pos_angles):
+
             # rotates in counterclockwise direction, hence the minus sign in angle
             positions[i, :] = rotate_coordinates(center=self.m_pos_center,
-                                                 position=self.m_pos_binary,
-                                                 angle=item-parang[0])
+                                                 position=start_pos,
+                                                 angle=item)
+
+        print(positions[0:200])
 
         self.m_image_size = int(math.ceil(self.m_image_size/pixscale))
         self.m_search_size = int(math.ceil(self.m_search_size/pixscale))
@@ -272,19 +284,19 @@ class ExtractBinaryModule(ProcessingModule):
                                   width=self.m_search_size,
                                   fwhm=filter_size)
 
-            return crop_image(image=image,
+            return -1.*crop_image(image=image,
                               center=tuple(starpos),
                               size=im_size)
 
-        self.apply_function_to_images(_crop_rotating_star,
-                                      self.m_image_in_port,
-                                      self.m_image_out_port,
-                                      'Running ExtractBinaryModule',
-                                      func_args=(positions,
-                                                 self.m_image_size,
-                                                 self.m_filter_size))
-
-        history = f'filter [pix] = {self.m_filter_size}'
-        self.m_image_out_port.copy_attributes(self.m_image_in_port)
-        self.m_image_out_port.add_history('ExtractBinaryModule', history)
-        self.m_image_out_port.close_port()
+        # self.apply_function_to_images(_crop_rotating_star,
+        #                               self.m_image_in_port,
+        #                               self.m_image_out_port,
+        #                               'Running ExtractBinaryModule',
+        #                               func_args=(positions,
+        #                                          self.m_image_size,
+        #                                          self.m_filter_size))
+        #
+        # history = f'filter [pix] = {self.m_filter_size}'
+        # self.m_image_out_port.copy_attributes(self.m_image_in_port)
+        # self.m_image_out_port.add_history('ExtractBinaryModule', history)
+        # self.m_image_out_port.close_port()
