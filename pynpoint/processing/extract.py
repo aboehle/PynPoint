@@ -262,7 +262,7 @@ class ExtractBinaryModule(ProcessingModule):
         start_pos = [self.m_pos_center[0] + self.m_sep_binary/pixscale,   # (y, x)
                      self.m_pos_center[1]]
 
-        for i, item in enumerate(pos_angles):
+        for i, item in enumerate(pos_angles[0:200]):
 
             # rotates in counterclockwise direction, hence the minus sign in angle
             positions[i, :] = rotate_coordinates(center=self.m_pos_center,
