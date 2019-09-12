@@ -224,7 +224,7 @@ class ExtractBinaryModule(ProcessingModule):
 
         super(ExtractBinaryModule, self).__init__(name_in)
 
-        # self.m_image_in_port = self.add_input_port(image_in_tag)
+        self.m_image_in_port = self.add_input_port(image_in_tag)
         # self.m_image_out_port = self.add_output_port(image_out_tag)
 
         self.m_pos_center = (pos_center[1], pos_center[0])  # (y, x)
@@ -254,22 +254,26 @@ class ExtractBinaryModule(ProcessingModule):
         pixscale = self.m_image_in_port.get_attribute('PIXSCALE')
         parang = self.m_image_in_port.get_attribute('PARANG')
         pupil_pos = self.m_image_in_port.get_attribute('PUPIL')
-
-        angles = 180. + self.m_pa_binary - (parang - (90. + pupil_pos))
-
+        nframes = self.m_image_in_port.get_attribute('NFRAMES')
+        
+        angles = np.zeros(parang.shape)
+        for n in range(pupil_pos.shape[0]):
+            start = np.sum(nframes[0:n])
+            end = start + nframes[n]
+            angles[start:end] = 180. + self.m_pa_binary - (parang[start:end] - (90. + pupil_pos[n]))
+                
         positions = np.zeros((parang.shape[0], 2), dtype=np.int)
 
-        start_pos = [self.m_pos_center[0] + self.m_sep_binary/pixscale,   # (y, x)
-                     self.m_pos_center[1]]
-
-        for i, item in enumerate(pos_angles[0:200]):
+        start_pos = (self.m_pos_center[0] + self.m_sep_binary/pixscale,   # (y, x)
+                     self.m_pos_center[1])
+        for i, item in enumerate(angles[5000:5200]):
 
             # rotates in counterclockwise direction, hence the minus sign in angle
             positions[i, :] = rotate_coordinates(center=self.m_pos_center,
                                                  position=start_pos,
                                                  angle=item)
 
-        print(positions[0:200])
+        print(positions[0:10])
 
         self.m_image_size = int(math.ceil(self.m_image_size/pixscale))
         self.m_search_size = int(math.ceil(self.m_search_size/pixscale))
