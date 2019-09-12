@@ -225,7 +225,7 @@ class ExtractBinaryModule(ProcessingModule):
         super(ExtractBinaryModule, self).__init__(name_in)
 
         self.m_image_in_port = self.add_input_port(image_in_tag)
-        # self.m_image_out_port = self.add_output_port(image_out_tag)
+        self.m_image_out_port = self.add_output_port(image_out_tag)
 
         self.m_pos_center = (pos_center[1], pos_center[0])  # (y, x)
 
@@ -292,15 +292,15 @@ class ExtractBinaryModule(ProcessingModule):
                               center=tuple(starpos),
                               size=im_size)
 
-        # self.apply_function_to_images(_crop_rotating_star,
-        #                               self.m_image_in_port,
-        #                               self.m_image_out_port,
-        #                               'Running ExtractBinaryModule',
-        #                               func_args=(positions,
-        #                                          self.m_image_size,
-        #                                          self.m_filter_size))
-        #
-        # history = f'filter [pix] = {self.m_filter_size}'
-        # self.m_image_out_port.copy_attributes(self.m_image_in_port)
-        # self.m_image_out_port.add_history('ExtractBinaryModule', history)
-        # self.m_image_out_port.close_port()
+        self.apply_function_to_images(_crop_rotating_star,
+                                      self.m_image_in_port,
+                                      self.m_image_out_port,
+                                      'Running ExtractBinaryModule',
+                                      func_args=(positions,
+                                                 self.m_image_size,
+                                                 self.m_filter_size))
+
+        history = f'filter [pix] = {self.m_filter_size}'
+        self.m_image_out_port.copy_attributes(self.m_image_in_port)
+        self.m_image_out_port.add_history('ExtractBinaryModule', history)
+        self.m_image_out_port.close_port()
