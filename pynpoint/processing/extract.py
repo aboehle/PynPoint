@@ -266,14 +266,12 @@ class ExtractBinaryModule(ProcessingModule):
 
         start_pos = (self.m_pos_center[0] + self.m_sep_binary/pixscale,   # (y, x)
                      self.m_pos_center[1])
-        for i, item in enumerate(angles[5000:5200]):
+        for i, item in enumerate(angles):
 
             # rotates in counterclockwise direction, hence the minus sign in angle
             positions[i, :] = rotate_coordinates(center=self.m_pos_center,
                                                  position=start_pos,
                                                  angle=item)
-
-        print(positions[0:10])
 
         self.m_image_size = int(math.ceil(self.m_image_size/pixscale))
         self.m_search_size = int(math.ceil(self.m_search_size/pixscale))
@@ -283,12 +281,12 @@ class ExtractBinaryModule(ProcessingModule):
 
         def _crop_rotating_star(image, position, im_size, filter_size):
 
-            starpos = locate_star(image=image,
+            starpos = locate_star(image=-1.*image,
                                   center=tuple(position),
                                   width=self.m_search_size,
                                   fwhm=filter_size)
 
-            return -1.*crop_image(image=image,
+            return crop_image(image=-1.*image,
                               center=tuple(starpos),
                               size=im_size)
 
