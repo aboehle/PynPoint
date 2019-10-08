@@ -302,7 +302,7 @@ class ContrastCurveModule(ProcessingModule):
         self.m_contrast_map_out_port._check_status_and_activate()
 
         self.m_contrast_out_port.set_all(limits, data_dim=2)
-        self.m_contrast_map_out_port.set_all(results, data_dim=3)
+        self.m_contrast_map_out_port.set_all(result, data_dim=3)
 
         sys.stdout.write('\rRunning ContrastCurveModule... [DONE]\n')
         sys.stdout.flush()
