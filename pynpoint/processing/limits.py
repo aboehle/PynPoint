@@ -39,6 +39,7 @@ class ContrastCurveModule(ProcessingModule):
                  image_in_tag: str,
                  psf_in_tag: str,
                  contrast_out_tag: str,
+                 contrast_map_out_tag: str,
                  separation: Tuple[float, float, float] = (0.1, 1., 0.01),
                  angle: Tuple[float, float, float] = (0., 360., 60.),
                  threshold: Tuple[str, float] = ('sigma', 5.),
@@ -136,6 +137,7 @@ class ContrastCurveModule(ProcessingModule):
             self.m_psf_in_port = self.add_input_port(psf_in_tag)
 
         self.m_contrast_out_port = self.add_output_port(contrast_out_tag)
+        self.m_contrast_map_out_port = self.add_output_port(contrast_map_out_tag)
 
         self.m_separation = separation
         self.m_angle = angle
@@ -297,8 +299,10 @@ class ContrastCurveModule(ProcessingModule):
 
         self.m_image_in_port._check_status_and_activate()
         self.m_contrast_out_port._check_status_and_activate()
+        self.m_contrast_map_out_port._check_status_and_activate()
 
         self.m_contrast_out_port.set_all(limits, data_dim=2)
+        self.m_contrast_map_out_port.set_all(results, data_dim=3)
 
         sys.stdout.write('\rRunning ContrastCurveModule... [DONE]\n')
         sys.stdout.flush()
@@ -307,6 +311,10 @@ class ContrastCurveModule(ProcessingModule):
         self.m_contrast_out_port.add_history('ContrastCurveModule', history)
         self.m_contrast_out_port.copy_attributes(self.m_image_in_port)
         self.m_contrast_out_port.close_port()
+
+        self.m_contrast_map_out_port.add_history('ContrastCurveModule', history)
+        self.m_contrast_map_out_port.copy_attributes(self.m_image_in_port)
+        self.m_contrast_map_out_port.close_port()
 
 
 class MassLimitsModule(ProcessingModule):
