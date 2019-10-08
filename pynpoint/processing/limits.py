@@ -39,7 +39,7 @@ class ContrastCurveModule(ProcessingModule):
                  image_in_tag: str,
                  psf_in_tag: str,
                  contrast_out_tag: str,
-                 contrast_map_out_tag: str,
+                 contrast_map_out_tag: str = 'contrast_map',
                  separation: Tuple[float, float, float] = (0.1, 1., 0.01),
                  angle: Tuple[float, float, float] = (0., 360., 60.),
                  threshold: Tuple[str, float] = ('sigma', 5.),
@@ -294,6 +294,8 @@ class ContrastCurveModule(ProcessingModule):
         mag_mean = np.nanmean(result, axis=1)[:, 2]
         mag_var = np.nanvar(result, axis=1)[:, 2]
         res_fpf = result[:, 0, 3]
+
+        result[:,:,0] *= pixscale
 
         limits = np.column_stack((pos_r*pixscale, mag_mean, mag_var, res_fpf))
 
