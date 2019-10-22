@@ -30,6 +30,7 @@ def contrast_limit(path_images: str,
                    aperture: float,
                    residuals: str,
                    snr_inject: float,
+                   posang_ignore: Tuple[float, float],
                    position: Tuple[float, float]) -> Tuple[float, float, float, float]:
 
     """
@@ -117,6 +118,7 @@ def contrast_limit(path_images: str,
                                    x_pos=yx_fake[1],
                                    y_pos=yx_fake[0],
                                    size=aperture,
+                                   posang_ignore=posang_ignore,
                                    ignore=False)
 
     # Aperture properties

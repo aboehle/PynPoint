@@ -23,6 +23,7 @@ def false_alarm(image: np.ndarray,
                 x_pos: float,
                 y_pos: float,
                 size: float,
+                posang_ignore: Tuple[float, float],
                 ignore: bool) -> Tuple[float, float, float, float]:
     """
     Function for the formal t-test for high-contrast imaging at small working angles and the
@@ -64,6 +65,9 @@ def false_alarm(image: np.ndarray,
     if ignore:
         num_ap -= 2
         ap_theta = np.delete(ap_theta, [1, np.size(ap_theta)-1])
+
+    idx_bad_posang = np.where( (ap_theta > posang_ignore[0]) & (ap_theta < posang_ignore[1]) )
+    ap_theta = np.delete(ap_theta, idx_bad_posang)
 
     if num_ap < 3:
         raise ValueError(f'Number of apertures (num_ap={num_ap}) is too small to calculate the '

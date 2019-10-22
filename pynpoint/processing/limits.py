@@ -51,6 +51,7 @@ class ContrastCurveModule(ProcessingModule):
                  extra_rot: float = 0.,
                  residuals: str = 'median',
                  snr_inject: float = 100.,
+                 posang_ignore: Tuple[float, float] = (0, 0),
                  **kwargs: float) -> None:
         """
         Parameters
@@ -150,6 +151,7 @@ class ContrastCurveModule(ProcessingModule):
         self.m_extra_rot = extra_rot
         self.m_residuals = residuals
         self.m_snr_inject = snr_inject
+        self.m_posang_ignore = posang_ignore
 
         if self.m_angle[0] < 0. or self.m_angle[0] > 360. or self.m_angle[1] < 0. or \
            self.m_angle[1] > 360. or self.m_angle[2] < 0. or self.m_angle[2] > 360.:
@@ -260,6 +262,7 @@ class ContrastCurveModule(ProcessingModule):
                                                         self.m_aperture,
                                                         self.m_residuals,
                                                         self.m_snr_inject,
+                                                        self.m_posang_ignore,
                                                         pos)))
 
         pool.close()
