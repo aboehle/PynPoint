@@ -58,6 +58,9 @@ def false_alarm(image: np.ndarray,
 
     center = center_subpixel(image)
     radius = math.sqrt((center[0]-y_pos)**2.+(center[1]-x_pos)**2.)
+    sep_ang = cartesian_to_polar(center=center,
+                                 y_pos=y_pos,
+                                 x_pos=x_pos)
 
     num_ap = int(math.pi*radius/size)
     ap_theta = np.linspace(0, 2.*math.pi, num_ap, endpoint=False)
@@ -66,7 +69,8 @@ def false_alarm(image: np.ndarray,
         num_ap -= 2
         ap_theta = np.delete(ap_theta, [1, np.size(ap_theta)-1])
 
-    idx_bad_posang = np.where( (ap_theta > (posang_ignore[0]*np.pi/180.)) & (ap_theta < (posang_ignore[1]*np.pi/180.)) )
+    idx_bad_posang = np.where( ( ((ap_theta + sep_ang[1]) % 360) > (posang_ignore[0]*np.pi/180.)) & \
+                               ( ((ap_theta + sep_ang[1]) % 360) < (posang_ignore[1]*np.pi/180.)) )
     ap_theta = np.delete(ap_theta, idx_bad_posang)
     num_ap -= len(idx_bad_posang[0])
 
@@ -86,6 +90,8 @@ def false_alarm(image: np.ndarray,
         aperture = CircularAperture((x_tmp, y_tmp), size)
         phot_table = aperture_photometry(image, aperture, method='exact')
         ap_phot[i] = phot_table['aperture_sum']
+
+    print(ap_theta[1:]*180./np.pi)
 
     # Note: ddof=1 is a necessary argument in order to compute the *unbiased* estimate of the
     # standard deviation, as suggested by eq. 8 of Mawet et al. (2014).
