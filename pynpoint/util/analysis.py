@@ -68,6 +68,7 @@ def false_alarm(image: np.ndarray,
 
     idx_bad_posang = np.where( (ap_theta > (posang_ignore[0]*np.pi/180.)) & (ap_theta < (posang_ignore[1]*np.pi/180.)) )
     ap_theta = np.delete(ap_theta, idx_bad_posang)
+    num_ap -= len(idx_bad_posang[0])
 
     if num_ap < 3:
         raise ValueError(f'Number of apertures (num_ap={num_ap}) is too small to calculate the '
