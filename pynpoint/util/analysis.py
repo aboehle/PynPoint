@@ -61,7 +61,6 @@ def false_alarm(image: np.ndarray,
     sep_ang = cartesian_to_polar(center=center,
                                  y_pos=y_pos,
                                  x_pos=x_pos)
-    print(sep_ang)
 
     num_ap = int(math.pi*radius/size)
     ap_theta = np.linspace(0, 2.*math.pi, num_ap, endpoint=False)
@@ -80,6 +79,7 @@ def false_alarm(image: np.ndarray,
                          'false positive fraction.')
 
     ap_phot = np.zeros(num_ap)
+    ang_tmp = np.zeros(num_ap)
 
     for i, theta in enumerate(ap_theta):
         x_tmp = center[1] + (x_pos-center[1])*math.cos(theta) - \
@@ -88,11 +88,15 @@ def false_alarm(image: np.ndarray,
         y_tmp = center[0] + (x_pos-center[1])*math.sin(theta) + \
                             (y_pos-center[0])*math.cos(theta)
 
+        ang_tmp[i] = cartesian_to_polar(center=center,
+                                        y_pos=y_tmp,
+                                        x_pos=x_tmp)[1]
+
         aperture = CircularAperture((x_tmp, y_tmp), size)
         phot_table = aperture_photometry(image, aperture, method='exact')
         ap_phot[i] = phot_table['aperture_sum']
 
-    print( (ap_theta[1:]*180./np.pi + sep_ang[1]) % 360)
+    print(ang_tmp)
 
     # Note: ddof=1 is a necessary argument in order to compute the *unbiased* estimate of the
     # standard deviation, as suggested by eq. 8 of Mawet et al. (2014).
