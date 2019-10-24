@@ -154,6 +154,7 @@ def contrast_limit(path_images: str,
                                     x_pos=yx_fake[1],
                                     y_pos=yx_fake[0],
                                     size=aperture,
+                                    posang_ignore=posang_ignore,
                                     ignore=False)
 
     # Calculate the amount of self-subtraction
