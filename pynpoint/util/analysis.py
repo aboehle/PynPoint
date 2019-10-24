@@ -92,7 +92,7 @@ def false_alarm(image: np.ndarray,
         phot_table = aperture_photometry(image, aperture, method='exact')
         ap_phot[i] = phot_table['aperture_sum']
 
-    print(ap_theta[1:]*180./np.pi - sep_ang[1])
+    print( (ap_theta[1:]*180./np.pi + sep_ang[1]) % 360)
 
     # Note: ddof=1 is a necessary argument in order to compute the *unbiased* estimate of the
     # standard deviation, as suggested by eq. 8 of Mawet et al. (2014).
