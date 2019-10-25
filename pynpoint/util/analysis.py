@@ -69,9 +69,14 @@ def false_alarm(image: np.ndarray,
         num_ap -= 2
         ap_theta = np.delete(ap_theta, [1, np.size(ap_theta)-1])
 
-    idx_bad_posang = np.where( ( ((ap_theta[1:]*180./np.pi + sep_ang[1]) % 360) > (posang_ignore[0])) & \
-                               ( ((ap_theta[1:]*180./np.pi + sep_ang[1]) % 360) < (posang_ignore[1])) )
-    ap_theta = np.delete(ap_theta[1:], idx_bad_posang)
+    idx_bad_posang = np.where( ( ((ap_theta*180./np.pi + sep_ang[1]) % 360) > (posang_ignore[0])) & \
+                               ( ((ap_theta*180./np.pi + sep_ang[1]) % 360) < (posang_ignore[1])) )
+    print(idx_bad_posang)
+    idx_0 = np.where(idx_bad_posang == 0)[0]
+    idx_bad_posang = np.delete(idx_bad_posang,idx_0)
+    print(idx_bad_posang)
+
+    ap_theta = np.delete(ap_theta, idx_bad_posang)
     num_ap -= len(idx_bad_posang[0])
 
     if num_ap < 3:
