@@ -71,10 +71,8 @@ def false_alarm(image: np.ndarray,
 
     idx_bad_posang = np.where( ( ((ap_theta*180./np.pi + sep_ang[1]) % 360) > (posang_ignore[0])) & \
                                ( ((ap_theta*180./np.pi + sep_ang[1]) % 360) < (posang_ignore[1])) )[0]
-    print(idx_bad_posang)
     idx_0 = np.where(idx_bad_posang == 0)[0]
     idx_bad_posang = np.delete(idx_bad_posang,idx_0)
-    print(idx_bad_posang)
 
     ap_theta = np.delete(ap_theta, idx_bad_posang)
     num_ap -= len(idx_bad_posang)
@@ -100,8 +98,6 @@ def false_alarm(image: np.ndarray,
         aperture = CircularAperture((x_tmp, y_tmp), size)
         phot_table = aperture_photometry(image, aperture, method='exact')
         ap_phot[i] = phot_table['aperture_sum']
-
-    print(ang_tmp)
 
     # Note: ddof=1 is a necessary argument in order to compute the *unbiased* estimate of the
     # standard deviation, as suggested by eq. 8 of Mawet et al. (2014).
