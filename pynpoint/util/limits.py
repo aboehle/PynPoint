@@ -122,8 +122,6 @@ def contrast_limit(path_images: str,
                                    posang_ignore=posang_ignore,
                                    ignore=False)
 
-    pdb.set_trace()
-
     # Aperture properties
     im_center = center_subpixel(images)
 
@@ -159,8 +157,6 @@ def contrast_limit(path_images: str,
                                     size=aperture,
                                     posang_ignore=posang_ignore,
                                     ignore=False)
-
-    pdb.set_trace()
 
     # Calculate the amount of self-subtraction
     attenuation = flux_out/flux_in
