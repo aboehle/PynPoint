@@ -15,6 +15,7 @@ from pynpoint.util.analysis import student_t, fake_planet, false_alarm
 from pynpoint.util.image import polar_to_cartesian, center_subpixel
 from pynpoint.util.psf import pca_psf_subtraction
 from pynpoint.util.residuals import combine_residuals
+import pdb
 
 
 @typechecked
@@ -120,6 +121,8 @@ def contrast_limit(path_images: str,
                                    size=aperture,
                                    posang_ignore=posang_ignore,
                                    ignore=False)
+
+    pdb.set_trace()
 
     # Aperture properties
     im_center = center_subpixel(images)
