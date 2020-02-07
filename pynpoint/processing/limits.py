@@ -50,6 +50,7 @@ class ContrastCurveModule(ProcessingModule):
                  edge_size: float = None,
                  extra_rot: float = 0.,
                  residuals: str = 'median',
+                 num_iter: int = 3,
                  snr_inject: float = 100.,
                  posang_ignore: Tuple[float, float] = (0, 0),
                  **kwargs: float) -> None:
@@ -151,6 +152,7 @@ class ContrastCurveModule(ProcessingModule):
         self.m_extra_rot = extra_rot
         self.m_residuals = residuals
         self.m_snr_inject = snr_inject
+        self.m_num_iter = num_iter
         self.m_posang_ignore = posang_ignore
 
         if self.m_angle[0] < 0. or self.m_angle[0] > 360. or self.m_angle[1] < 0. or \
@@ -246,59 +248,60 @@ class ContrastCurveModule(ProcessingModule):
 
         noise = combine_residuals(method=self.m_residuals, res_rot=im_res)
 
-        # pool = mp.Pool(cpu)
-        #
-        # for pos in positions:
-        #     async_results.append(pool.apply_async(contrast_limit,
-        #                                           args=(tmp_im_str,
-        #                                                 tmp_psf_str,
-        #                                                 noise,
-        #                                                 mask,
-        #                                                 parang,
-        #                                                 self.m_psf_scaling,
-        #                                                 self.m_extra_rot,
-        #                                                 self.m_pca_number,
-        #                                                 self.m_threshold,
-        #                                                 self.m_aperture,
-        #                                                 self.m_residuals,
-        #                                                 self.m_snr_inject,
-        #                                                 self.m_posang_ignore,
-        #                                                 pos)))
-        #
-        # pool.close()
-        #
-        # # wait for all processes to finish
-        # while mp.active_children():
-        #     # number of finished processes
-        #     nfinished = sum([i.ready() for i in async_results])
-        #
-        #     progress(int(nfinished/len(positions)), 1, 'Running ContrastCurveModule...')
-        #
-        #     # check if new processes have finished every 5 seconds
-        #     time.sleep(5)
-        #
-        # # get the results for every async_result object
-        # for item in async_results:
-        #     result.append(item.get())
-        #
-        # pool.terminate()
+        pool = mp.Pool(cpu)
 
         for pos in positions:
-            tmp_result = contrast_limit(tmp_im_str,
-                                        tmp_psf_str,
-                                        noise,
-                                        mask,
-                                        parang,
-                                        self.m_psf_scaling,
-                                        self.m_extra_rot,
-                                        self.m_pca_number,
-                                        self.m_threshold,
-                                        self.m_aperture,
-                                        self.m_residuals,
-                                        self.m_snr_inject,
-                                        self.m_posang_ignore,
-                                        pos)
-            result.append(tmp_result)
+            async_results.append(pool.apply_async(contrast_limit,
+                                                  args=(tmp_im_str,
+                                                        tmp_psf_str,
+                                                        noise,
+                                                        mask,
+                                                        parang,
+                                                        self.m_psf_scaling,
+                                                        self.m_extra_rot,
+                                                        self.m_pca_number,
+                                                        self.m_threshold,
+                                                        self.m_aperture,
+                                                        self.m_residuals,
+                                                        self.m_snr_inject,
+                                                        self.m_num_iter,
+                                                        self.m_posang_ignore,
+                                                        pos)))
+
+        pool.close()
+
+        # wait for all processes to finish
+        while mp.active_children():
+            # number of finished processes
+            nfinished = sum([i.ready() for i in async_results])
+
+            progress(int(nfinished/len(positions)), 1, 'Running ContrastCurveModule...')
+
+            # check if new processes have finished every 5 seconds
+            time.sleep(5)
+
+        # get the results for every async_result object
+        for item in async_results:
+            result.append(item.get())
+
+        pool.terminate()
+
+        # for pos in positions:
+        #     tmp_result = contrast_limit(tmp_im_str,
+        #                                 tmp_psf_str,
+        #                                 noise,
+        #                                 mask,
+        #                                 parang,
+        #                                 self.m_psf_scaling,
+        #                                 self.m_extra_rot,
+        #                                 self.m_pca_number,
+        #                                 self.m_threshold,
+        #                                 self.m_aperture,
+        #                                 self.m_residuals,
+        #                                 self.m_snr_inject,
+        #                                 self.m_posang_ignore,
+        #                                 pos)
+        #     result.append(tmp_result)
 
         os.remove(tmp_im_str)
         os.remove(tmp_psf_str)

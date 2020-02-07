@@ -31,6 +31,7 @@ def contrast_limit(path_images: str,
                    aperture: float,
                    residuals: str,
                    snr_inject: float,
+                   num_iter: int,
                    posang_ignore: Tuple[float, float],
                    position: Tuple[float, float]) -> Tuple[float, float, float, float]:
 
@@ -115,14 +116,15 @@ def contrast_limit(path_images: str,
     yx_fake = polar_to_cartesian(images, position[0], position[1]-extra_rot)
 
     # Determine the noise level
-    _, t_noise, _, _ = false_alarm(image=noise[0, ],
+    flux, t_noise, t_test, _ = false_alarm(image=noise[0, ],
                                    x_pos=yx_fake[1],
                                    y_pos=yx_fake[0],
                                    size=aperture,
                                    posang_ignore=posang_ignore,
-                                   ignore=False)
+                                   ignore=True)
 
-    pdb.set_trace()
+    # Get average in noise apertures from false_alarm output
+    avg_of_noiseaps = flux - t_test * t_noise
 
     # Aperture properties
     im_center = center_subpixel(images)
@@ -132,41 +134,71 @@ def contrast_limit(path_images: str,
     phot_table = aperture_photometry(psf_scaling*psf[0, ], ap_phot, method='exact')
     star = phot_table['aperture_sum'][0]
 
+    # Initialize iteration arrays
+    flux_in_iter = np.zeros(num_iter+1)
+    attenuation_iter = np.zeros(num_iter)
+    noise_iter = np.zeros(num_iter)
+    avg_of_noiseaps_iter = np.zeros(num_iter)
+
     # Magnitude of the injected planet
-    flux_in = snr_inject*t_noise
-    mag = -2.5*math.log10(flux_in/star)
+    flux_in_iter[0] = snr_inject*t_noise
 
-    # Inject the fake planet
-    fake = fake_planet(images=images,
-                       psf=psf,
-                       parang=parang,
-                       position=(position[0], position[1]),
-                       magnitude=mag,
-                       psf_scaling=psf_scaling)
+    for i in range(num_iter):
 
-    # Run the PSF subtraction
-    im_res, _  = pca_psf_subtraction(images=fake*mask,
-                                    angles=-1.*parang+extra_rot,
-                                    pca_number=pca_number)
+        # Inject the fake planet
+        mag = -2.5 * math.log10(flux_in_iter[i] / star)
 
-    # Stack the residuals
-    im_res = combine_residuals(method=residuals, res_rot=im_res)
+        fake = fake_planet(images=images,
+                           psf=psf,
+                           parang=parang,
+                           position=(position[0], position[1]),
+                           magnitude=mag,
+                           psf_scaling=psf_scaling)
 
-    # Measure the flux of the fake planet
-    flux_out, _, _, _ = false_alarm(image=im_res[0, ],
-                                    x_pos=yx_fake[1],
-                                    y_pos=yx_fake[0],
-                                    size=aperture,
-                                    posang_ignore=posang_ignore,
-                                    ignore=False)
+        # Run the PSF subtraction
+        im_res, _  = pca_psf_subtraction(images=fake*mask,
+                                         angles=-1.*parang+extra_rot,
+                                         pca_number=pca_number)
 
-    pdb.set_trace()
+        # Stack the residuals
+        im_res = combine_residuals(method=residuals, res_rot=im_res)
 
-    # Calculate the amount of self-subtraction
-    attenuation = flux_out/flux_in
+        # Measure the flux of the fake planet
+        flux_out, noise_iter[i], t_test_out, _ = false_alarm(image=im_res[0, ],
+                                                            x_pos=yx_fake[1],
+                                                            y_pos=yx_fake[0],
+                                                            size=aperture,
+                                                            posang_ignore=posang_ignore,
+                                                            ignore=True)
+
+        # Calculate the amount of self-subtraction
+        attenuation_iter[i] = flux_out/flux_in_iter[i]
+
+        # Get average in the noise aps, which goes into the student-t test
+        avg_of_noiseaps_iter[i] = flux_out - t_test_out * noise_iter[i]
+
+        if i == 0:
+            # Make initial guess for the limiting flux from snr_inject planet
+            flux_in_iter[i+1] = (sigma*noise_iter[i] + avg_of_noiseaps_iter[i])/attenuation_iter[i]
+
+        elif i == 1:
+            # Make second guess for the limiting flux,
+            # assuming same attenuation, noise, and average in noise aps
+            flux_in_iter[i+1] = (noise_iter[i] * sigma + avg_of_noiseaps_iter[i]) / attenuation_iter[i]
+        else:
+            # Make a next guess for the 5-sigma flux
+            # linearly extrapolating from previous 2 values of
+            # attenuation, noise, and average in noise aps
+            p_noise = np.polyfit(flux_in_iter[i-1:i+1], noise_iter[i-1:i+1], deg=1)
+            p_att = np.polyfit(flux_in_iter[i-1:i+1], attenuation_iter[i-1:i+1], deg=1)
+            p_avg = np.polyfit(flux_in_iter[i-1:i+1], avg_of_noiseaps_iter[i-1:i+1], deg=1)
+
+            roots = np.roots([p_att[0],(p_att[1] - sigma*p_noise[0] - p_avg[0]),-(sigma*p_noise[1] + p_avg[1])])
+
+            flux_in_iter[i+1] = np.min(roots[np.where(roots > 0)])
 
     # Calculate the detection limit
-    contrast = sigma*t_noise/(attenuation*star)
+    contrast = flux_in_iter[-1]/star
 
     # The flux_out can be negative, for example if the aperture includes self-subtraction regions
     if contrast > 0.:
