@@ -185,6 +185,7 @@ def contrast_limit(path_images: str,
             # Make second guess for the limiting flux,
             # assuming same attenuation, noise, and average in noise aps
             flux_in_iter[i+1] = (noise_iter[i] * sigma + avg_of_noiseaps_iter[i]) / attenuation_iter[i]
+
         else:
             # Make a next guess for the 5-sigma flux
             # linearly extrapolating from previous 2 values of
@@ -195,7 +196,12 @@ def contrast_limit(path_images: str,
 
             roots = np.roots([p_att[0],(p_att[1] - sigma*p_noise[0] - p_avg[0]),-(sigma*p_noise[1] + p_avg[1])])
 
-            flux_in_iter[i+1] = np.min(roots[np.where(roots > 0)])
+            # check if roots are real
+            # if not, then use the method above for the next guess
+            if np.isreal(roots).all():
+                flux_in_iter[i+1] = np.min(roots[np.where(roots > 0)])
+            else:
+                flux_in_iter[i + 1] = (noise_iter[i] * sigma + avg_of_noiseaps_iter[i]) / attenuation_iter[i]
 
     # Calculate the detection limit
     contrast = flux_in_iter[-1]/star
