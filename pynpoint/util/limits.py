@@ -174,6 +174,8 @@ def contrast_limit(path_images: str,
         # Calculate the amount of self-subtraction
         attenuation_iter[i] = flux_out/flux_in_iter[i]
 
+        pdb.set_trace()
+
         # Get average in the noise aps, which goes into the student-t test
         avg_of_noiseaps_iter[i] = flux_out - t_test_out * noise_iter[i]
 
@@ -201,7 +203,7 @@ def contrast_limit(path_images: str,
             if np.isreal(roots).all():
                 flux_in_iter[i+1] = np.min(roots[np.where(roots > 0)])
             else:
-                flux_in_iter[i + 1] = (noise_iter[i] * sigma + avg_of_noiseaps_iter[i]) / attenuation_iter[i]
+                flux_in_iter[i+1] = (noise_iter[i] * sigma + avg_of_noiseaps_iter[i]) / attenuation_iter[i]
 
     # Calculate the detection limit
     contrast = flux_in_iter[-1]/star
