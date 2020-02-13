@@ -299,6 +299,7 @@ class ContrastCurveModule(ProcessingModule):
                                         self.m_aperture,
                                         self.m_residuals,
                                         self.m_snr_inject,
+                                        self.m_num_iter,
                                         self.m_posang_ignore,
                                         pos)
             result.append(tmp_result)
