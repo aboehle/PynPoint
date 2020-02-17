@@ -174,8 +174,6 @@ def contrast_limit(path_images: str,
         # Calculate the amount of self-subtraction
         attenuation_iter[i] = flux_out/flux_in_iter[i]
 
-        pdb.set_trace()
-
         # Get average in the noise aps, which goes into the student-t test
         avg_of_noiseaps_iter[i] = flux_out - t_test_out * noise_iter[i]
 
@@ -208,6 +206,33 @@ def contrast_limit(path_images: str,
     # Calculate the detection limit
     contrast = flux_in_iter[-1]/star
 
+    # Do final check of contrast
+    mag = -2.5 * math.log10(contrast / star)
+
+    fake = fake_planet(images=images,
+                           psf=psf,
+                           parang=parang,
+                           position=(position[0], position[1]),
+                           magnitude=mag,
+                           psf_scaling=psf_scaling)
+
+    # Run the PSF subtraction
+    im_res, _  = pca_psf_subtraction(images=fake*mask,
+                                         angles=-1.*parang+extra_rot,
+                                         pca_number=pca_number)
+
+    # Stack the residuals
+    im_res = combine_residuals(method=residuals, res_rot=im_res)
+
+    # Measure the flux of the fake planet
+    flux_out, noise_out, t_test_out, _ = false_alarm(image=im_res[0, ],
+                                                            x_pos=yx_fake[1],
+                                                            y_pos=yx_fake[0],
+                                                            size=aperture,
+                                                            posang_ignore=posang_ignore,
+                                                            ignore=True)
+
+
     # The flux_out can be negative, for example if the aperture includes self-subtraction regions
     if contrast > 0.:
         contrast = -2.5*math.log10(contrast)
@@ -215,4 +240,4 @@ def contrast_limit(path_images: str,
         contrast = np.nan
 
     # Separation [pix], position antle [deg], contrast [mag], FPF
-    return position[0], position[1], contrast, fpf
+    return position[0], position[1], contrast, fpf, t_test_out

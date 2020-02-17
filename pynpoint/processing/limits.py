@@ -248,64 +248,64 @@ class ContrastCurveModule(ProcessingModule):
 
         noise = combine_residuals(method=self.m_residuals, res_rot=im_res)
 
-        # pool = mp.Pool(cpu)
-        #
-        # for pos in positions:
-        #     async_results.append(pool.apply_async(contrast_limit,
-        #                                           args=(tmp_im_str,
-        #                                                 tmp_psf_str,
-        #                                                 noise,
-        #                                                 mask,
-        #                                                 parang,
-        #                                                 self.m_psf_scaling,
-        #                                                 self.m_extra_rot,
-        #                                                 self.m_pca_number,
-        #                                                 self.m_threshold,
-        #                                                 self.m_aperture,
-        #                                                 self.m_residuals,
-        #                                                 self.m_snr_inject,
-        #                                                 self.m_num_iter,
-        #                                                 self.m_posang_ignore,
-        #                                                 pos)))
-        #
-        # pool.close()
-        #
-        # # wait for all processes to finish
-        # while mp.active_children():
-        #     # number of finished processes
-        #     nfinished = sum([i.ready() for i in async_results])
-        #
-        #     progress(int(nfinished/len(positions)), 1, 'Running ContrastCurveModule...')
-        #
-        #     # check if new processes have finished every 5 seconds
-        #     time.sleep(5)
-        #
-        # # get the results for every async_result object
-        # for item in async_results:
-        #     result.append(item.get())
-        #
-        # pool.terminate()
+        pool = mp.Pool(cpu)
 
         for pos in positions:
-            tmp_result = contrast_limit(tmp_im_str,
-                                        tmp_psf_str,
-                                        noise,
-                                        mask,
-                                        parang,
-                                        self.m_psf_scaling,
-                                        self.m_extra_rot,
-                                        self.m_pca_number,
-                                        self.m_threshold,
-                                        self.m_aperture,
-                                        self.m_residuals,
-                                        self.m_snr_inject,
-                                        self.m_num_iter,
-                                        self.m_posang_ignore,
-                                        pos)
-            result.append(tmp_result)
+            async_results.append(pool.apply_async(contrast_limit,
+                                                  args=(tmp_im_str,
+                                                        tmp_psf_str,
+                                                        noise,
+                                                        mask,
+                                                        parang,
+                                                        self.m_psf_scaling,
+                                                        self.m_extra_rot,
+                                                        self.m_pca_number,
+                                                        self.m_threshold,
+                                                        self.m_aperture,
+                                                        self.m_residuals,
+                                                        self.m_snr_inject,
+                                                        self.m_num_iter,
+                                                        self.m_posang_ignore,
+                                                        pos)))
 
-        os.remove(tmp_im_str)
-        os.remove(tmp_psf_str)
+        pool.close()
+
+        # wait for all processes to finish
+        while mp.active_children():
+            # number of finished processes
+            nfinished = sum([i.ready() for i in async_results])
+
+            progress(int(nfinished/len(positions)), 1, 'Running ContrastCurveModule...')
+
+            # check if new processes have finished every 5 seconds
+            time.sleep(5)
+
+        # get the results for every async_result object
+        for item in async_results:
+            result.append(item.get())
+
+        pool.terminate()
+
+        # for pos in positions:
+        #     tmp_result = contrast_limit(tmp_im_str,
+        #                                 tmp_psf_str,
+        #                                 noise,
+        #                                 mask,
+        #                                 parang,
+        #                                 self.m_psf_scaling,
+        #                                 self.m_extra_rot,
+        #                                 self.m_pca_number,
+        #                                 self.m_threshold,
+        #                                 self.m_aperture,
+        #                                 self.m_residuals,
+        #                                 self.m_snr_inject,
+        #                                 self.m_num_iter,
+        #                                 self.m_posang_ignore,
+        #                                 pos)
+        #     result.append(tmp_result)
+        #
+        # os.remove(tmp_im_str)
+        # os.remove(tmp_psf_str)
 
         result = np.asarray(result)
 
@@ -318,10 +318,11 @@ class ContrastCurveModule(ProcessingModule):
         mag_mean = np.nanmean(result, axis=1)[:, 2]
         mag_var = np.nanvar(result, axis=1)[:, 2]
         res_fpf = result[:, 0, 3]
+        res_t_test = result[:, 0, 4]
 
         result[:,:,0] *= pixscale
 
-        limits = np.column_stack((pos_r*pixscale, mag_mean, mag_var, res_fpf))
+        limits = np.column_stack((pos_r*pixscale, mag_mean, mag_var, res_fpf, res_t_test))
 
         self.m_image_in_port._check_status_and_activate()
         self.m_contrast_out_port._check_status_and_activate()
