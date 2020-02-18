@@ -139,6 +139,7 @@ def contrast_limit(path_images: str,
     attenuation_iter = np.zeros(num_iter)
     noise_iter = np.zeros(num_iter)
     avg_of_noiseaps_iter = np.zeros(num_iter)
+    t_test_iter = np.zeros(num_iter)
 
     # Magnitude of the injected planet
     flux_in_iter[0] = snr_inject*t_noise
@@ -164,7 +165,7 @@ def contrast_limit(path_images: str,
         im_res = combine_residuals(method=residuals, res_rot=im_res)
 
         # Measure the flux of the fake planet
-        flux_out, noise_iter[i], t_test_out, _ = false_alarm(image=im_res[0, ],
+        flux_out, noise_iter[i], t_test_iter[i], _ = false_alarm(image=im_res[0, ],
                                                             x_pos=yx_fake[1],
                                                             y_pos=yx_fake[0],
                                                             size=aperture,
@@ -175,16 +176,16 @@ def contrast_limit(path_images: str,
         attenuation_iter[i] = flux_out/flux_in_iter[i]
 
         # Get average in the noise aps, which goes into the student-t test
-        avg_of_noiseaps_iter[i] = flux_out - t_test_out * noise_iter[i]
+        avg_of_noiseaps_iter[i] = flux_out - t_test_iter[i] * noise_iter[i]
 
         if i == 0:
             # Make initial guess for the limiting flux from snr_inject planet
-            flux_in_iter[i+1] = (sigma*noise_iter[i] + avg_of_noiseaps_iter[i])/attenuation_iter[i]
+            flux_in_iter[i+1] = (sigma*t_noise + avg_of_noiseaps_iter[i])/attenuation_iter[i]
 
         elif i == 1:
             # Make second guess for the limiting flux,
             # assuming same attenuation, noise, and average in noise aps
-            flux_in_iter[i+1] = (noise_iter[i] * sigma + avg_of_noiseaps_iter[i]) / attenuation_iter[i]
+            flux_in_iter[i+1] = (sigma*noise_iter[i] + avg_of_noiseaps_iter[i]) / attenuation_iter[i]
 
         else:
             # Make a next guess for the 5-sigma flux
@@ -203,7 +204,7 @@ def contrast_limit(path_images: str,
             else:
                 flux_in_iter[i+1] = (noise_iter[i] * sigma + avg_of_noiseaps_iter[i]) / attenuation_iter[i]
 
-        print(f'\tt test snr = {t_test_out} for contrast of {flux_in_iter[i]/star}')
+        print(f'\tt test snr = {t_test_iter[i]} for contrast of {flux_in_iter[i]/star}')
 
     # Calculate the detection limit
     contrast = flux_in_iter[-1]/star
