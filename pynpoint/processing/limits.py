@@ -23,6 +23,7 @@ from pynpoint.util.module import progress
 from pynpoint.util.psf import pca_psf_subtraction
 from pynpoint.util.residuals import combine_residuals
 
+import pdb
 
 class ContrastCurveModule(ProcessingModule):
     """
@@ -315,6 +316,8 @@ class ContrastCurveModule(ProcessingModule):
         # os.remove(tmp_psf_str)
 
         result = np.asarray(result)
+
+        pdb.set_trace()
 
         # Sort the results first by separation and then by angle
         indices = np.lexsort((result[:, 1], result[:, 0]))
