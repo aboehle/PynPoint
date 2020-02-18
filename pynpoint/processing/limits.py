@@ -316,6 +316,8 @@ class ContrastCurveModule(ProcessingModule):
         # os.remove(tmp_psf_str)
 
         result = np.asarray(result)
+        result_contr_iter = np.asarray(result_contr_iter)
+        result_snr_iter = np.asarray(result_snr_iter)
 
         pdb.set_trace()
 
