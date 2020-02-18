@@ -15,8 +15,6 @@ from pynpoint.util.analysis import student_t, fake_planet, false_alarm
 from pynpoint.util.image import polar_to_cartesian, center_subpixel
 from pynpoint.util.psf import pca_psf_subtraction
 from pynpoint.util.residuals import combine_residuals
-import pdb
-
 
 @typechecked
 def contrast_limit(path_images: str,
@@ -204,7 +202,7 @@ def contrast_limit(path_images: str,
             else:
                 flux_in_iter[i+1] = (noise_iter[i] * sigma + avg_of_noiseaps_iter[i]) / attenuation_iter[i]
 
-        print(f'\tt test snr = {t_test_iter[i]} for contrast of {flux_in_iter[i]/star}')
+        #print(f'\tt test snr = {t_test_iter[i]} for contrast of {flux_in_iter[i]/star}')
 
     # Calculate the detection limit
     contrast = flux_in_iter[-1]/star
@@ -235,7 +233,7 @@ def contrast_limit(path_images: str,
                                                      posang_ignore=posang_ignore,
                                                      ignore=True)
 
-    print(f'\tfinal t test snr = {t_test_out} for contrast of {contrast}')
+    #print(f'\tfinal t test snr = {t_test_out} for contrast of {contrast}')
 
     # The flux_out can be negative, for example if the aperture includes self-subtraction regions
     if contrast > 0.:
