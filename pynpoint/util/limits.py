@@ -203,11 +203,13 @@ def contrast_limit(path_images: str,
             else:
                 flux_in_iter[i+1] = (noise_iter[i] * sigma + avg_of_noiseaps_iter[i]) / attenuation_iter[i]
 
+        print(f'\tt test snr = {t_test_out} for contrast of {flux_in_iter[i]/star}')
+
     # Calculate the detection limit
     contrast = flux_in_iter[-1]/star
 
     # Do final check of contrast
-    mag = -2.5 * math.log10(contrast / star)
+    mag = -2.5 * math.log10(contrast)
 
     fake = fake_planet(images=images,
                            psf=psf,
@@ -226,12 +228,13 @@ def contrast_limit(path_images: str,
 
     # Measure the flux of the fake planet
     flux_out, noise_out, t_test_out, _ = false_alarm(image=im_res[0, ],
-                                                            x_pos=yx_fake[1],
-                                                            y_pos=yx_fake[0],
-                                                            size=aperture,
-                                                            posang_ignore=posang_ignore,
-                                                            ignore=True)
+                                                     x_pos=yx_fake[1],
+                                                     y_pos=yx_fake[0],
+                                                     size=aperture,
+                                                     posang_ignore=posang_ignore,
+                                                     ignore=True)
 
+    print(f'\tfinal t test snr = {t_test_out} for contrast of {contrast}')
 
     # The flux_out can be negative, for example if the aperture includes self-subtraction regions
     if contrast > 0.:
