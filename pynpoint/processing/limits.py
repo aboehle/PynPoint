@@ -40,6 +40,7 @@ class ContrastCurveModule(ProcessingModule):
                  psf_in_tag: str,
                  contrast_out_tag: str,
                  contrast_map_out_tag: str = 'contrast_map',
+                 iter_out_tag: str = 'contr_snr_iter',
                  separation: Tuple[float, float, float] = (0.1, 1., 0.01),
                  angle: Tuple[float, float, float] = (0., 360., 60.),
                  threshold: Tuple[str, float] = ('sigma', 5.),
@@ -140,6 +141,7 @@ class ContrastCurveModule(ProcessingModule):
 
         self.m_contrast_out_port = self.add_output_port(contrast_out_tag)
         self.m_contrast_map_out_port = self.add_output_port(contrast_map_out_tag)
+        self.m_iter_out_tag = self.add_output_port(iter_out_tag)
 
         self.m_separation = separation
         self.m_angle = angle
@@ -231,6 +233,8 @@ class ContrastCurveModule(ProcessingModule):
                 positions.append((sep, ang))
 
         result = []
+        result_contr_iter = []
+        result_snr_iter = []
         async_results = []
 
         # Create temporary files
@@ -282,7 +286,10 @@ class ContrastCurveModule(ProcessingModule):
 
         # get the results for every async_result object
         for item in async_results:
-            result.append(item.get())
+            i = item.get()
+            result.append(i[0:-2])
+            result_contr_iter.append(i[-2])
+            result_snr_iter.append(i[-1])
 
         pool.terminate()
 
@@ -312,6 +319,9 @@ class ContrastCurveModule(ProcessingModule):
         # Sort the results first by separation and then by angle
         indices = np.lexsort((result[:, 1], result[:, 0]))
         result = result[indices]
+        result_contr_iter = result_contr_iter[indices]
+        result_snr_iter = result_snr_iter[indices]
+        result_iter = np.concatenate((result_contr_iter,result_snr_iter))
 
         result = result.reshape((pos_r.size, pos_t.size, 5))
 
@@ -330,6 +340,7 @@ class ContrastCurveModule(ProcessingModule):
 
         self.m_contrast_out_port.set_all(limits, data_dim=2)
         self.m_contrast_map_out_port.set_all(result, data_dim=3)
+        self.m_iter_out_tag.set_all(result_iter, data_dim=3)
 
         sys.stdout.write('\rRunning ContrastCurveModule... [DONE]\n')
         sys.stdout.flush()
@@ -340,7 +351,10 @@ class ContrastCurveModule(ProcessingModule):
 
         self.m_contrast_map_out_port.add_history('ContrastCurveModule', history)
         self.m_contrast_map_out_port.copy_attributes(self.m_image_in_port)
-        self.m_contrast_map_out_port.close_port()
+
+        self.m_iter_out_tag.add_history('ContrastCurveModule', history)
+        self.m_iter_out_tag.copy_attributes(self.m_image_in_port)
+        self.m_iter_out_tag.close_port()
 
 
 class MassLimitsModule(ProcessingModule):
