@@ -176,14 +176,14 @@ def contrast_limit(path_images: str,
         # Get average in the noise aps, which goes into the student-t test
         avg_of_noiseaps_iter[i] = flux_out - t_test_iter[i] * noise_iter[i]
 
-        if i == 0:
+        if i in [0,1,2]:
             # Make initial guess for the limiting flux from snr_inject planet
             flux_in_iter[i+1] = (sigma*noise_iter[i] + avg_of_noiseaps_iter[i])/attenuation_iter[i]
 
-        elif i == 1:
+        #elif i == 1:
             # Make second guess for the limiting flux,
             # assuming same attenuation, noise, and average in noise aps
-            flux_in_iter[i+1] = (sigma*noise_iter[i] + avg_of_noiseaps_iter[i]) / attenuation_iter[i]
+        #    flux_in_iter[i+1] = (sigma*noise_iter[i] + avg_of_noiseaps_iter[i]) / attenuation_iter[i]
 
         else:
             # Make a next guess for the 5-sigma flux
@@ -200,7 +200,7 @@ def contrast_limit(path_images: str,
             if np.isreal(roots).all():
                 flux_in_iter[i+1] = np.min(roots[np.where(roots > 0)])
             else:
-                flux_in_iter[i+1] = (noise_iter[i] * sigma + avg_of_noiseaps_iter[i]) / attenuation_iter[i]
+                flux_in_iter[i+1] = (sigma*noise_iter[i] + avg_of_noiseaps_iter[i]) / attenuation_iter[i]
 
         #print(f'\tt test snr = {t_test_iter[i]} for contrast of {flux_in_iter[i]/star}')
 
