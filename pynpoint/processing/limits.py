@@ -319,16 +319,17 @@ class ContrastCurveModule(ProcessingModule):
         result_contr_iter = np.asarray(result_contr_iter)
         result_snr_iter = np.asarray(result_snr_iter)
 
-        pdb.set_trace()
-
         # Sort the results first by separation and then by angle
         indices = np.lexsort((result[:, 1], result[:, 0]))
         result = result[indices]
         result_contr_iter = result_contr_iter[indices]
         result_snr_iter = result_snr_iter[indices]
-        result_iter = np.concatenate((result_contr_iter,result_snr_iter))
 
         result = result.reshape((pos_r.size, pos_t.size, 5))
+        result_contr_iter = result_contr_iter.reshape((pos_r.size, pos_t.size, self.m_num_iter))
+        result_snr_iter = result_snr_iter.reshape((pos_r.size, pos_t.size, self.m_num_iter))
+
+        result_iter = np.stack((result_contr_iter,result_snr_iter))
 
         mag_mean = np.nanmean(result, axis=1)[:, 2]
         mag_var = np.nanvar(result, axis=1)[:, 2]
@@ -344,7 +345,7 @@ class ContrastCurveModule(ProcessingModule):
 
         self.m_contrast_out_port.set_all(limits, data_dim=2)
         self.m_contrast_map_out_port.set_all(result, data_dim=3)
-        self.m_iter_out_tag.set_all(result_iter, data_dim=3)
+        self.m_iter_out_tag.set_all(result_iter, data_dim=4)
 
         sys.stdout.write('\rRunning ContrastCurveModule... [DONE]\n')
         sys.stdout.flush()
