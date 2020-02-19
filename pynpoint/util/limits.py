@@ -244,4 +244,4 @@ def contrast_limit(path_images: str,
     contrast_iter = -2.5*np.log10(flux_in_iter/star)
 
     # Separation [pix], position antle [deg], contrast [mag], FPF
-    return position[0], position[1], contrast, fpf, t_test_out, contrast_iter, t_test_iter
+    return position[0], position[1], contrast, fpf, t_test_iter[-1], contrast_iter, t_test_iter
