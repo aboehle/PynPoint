@@ -30,6 +30,7 @@ def contrast_limit(path_images: str,
                    residuals: str,
                    snr_inject: float,
                    num_iter: int,
+                   sigma_accuracy: float,
                    posang_ignore: Tuple[float, float],
                    position: Tuple[float, float]) -> Tuple[float, float, float, float, float, np.ndarray, np.ndarray]:
 
@@ -143,7 +144,9 @@ def contrast_limit(path_images: str,
     #flux_in_iter[0] = star*10**(snr_inject/-2.5)
     flux_in_iter[0] = snr_inject*t_noise
 
-    for i in range(num_iter):
+    i = 0
+    t_test_iter[-1] = np.nan
+    while i < num_iter and not ( (t_test_iter[i-1] < (sigma + sigma_accuracy)) and (t_test_iter[i-1] > (sigma - sigma_accuracy)) ):
 
         # Inject the fake planet
         mag = -2.5 * math.log10(flux_in_iter[i] / star)
@@ -207,9 +210,11 @@ def contrast_limit(path_images: str,
             
             break
 
+        i += 1
+
     
     # Calculate the detection limit
-    contrast = -2.5 * math.log10(flux_in_iter[-1]/star)
+    contrast = -2.5 * math.log10(flux_in_iter[i]/star)
     contrast_iter = -2.5*np.log10(flux_in_iter/star)
 
     if contrast == contrast:
@@ -232,7 +237,7 @@ def contrast_limit(path_images: str,
         im_res = combine_residuals(method=residuals, res_rot=im_res)
 
         # Measure the flux of the fake planet
-        flux_out, noise_out, t_test_iter[-1], _ = false_alarm(image=im_res[0, ],
+        flux_out, noise_out, t_test_iter[i], _ = false_alarm(image=im_res[0, ],
                                                      x_pos=yx_fake[1],
                                                      y_pos=yx_fake[0],
                                                      size=aperture,
@@ -240,4 +245,4 @@ def contrast_limit(path_images: str,
                                                      ignore=True)
 
     # Separation [pix], position antle [deg], contrast [mag], FPF, final t-test S/N
-    return position[0], position[1], contrast, fpf, t_test_iter[-1], contrast_iter, t_test_iter
+    return position[0], position[1], contrast, fpf, t_test_iter[i], contrast_iter, t_test_iter

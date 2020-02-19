@@ -54,6 +54,7 @@ class ContrastCurveModule(ProcessingModule):
                  residuals: str = 'median',
                  num_iter: int = 3,
                  snr_inject: float = 100.,
+                 sigma_accuracy: float = 0.5,
                  posang_ignore: Tuple[float, float] = (0, 0),
                  **kwargs: float) -> None:
         """
@@ -157,6 +158,7 @@ class ContrastCurveModule(ProcessingModule):
         self.m_snr_inject = snr_inject
         self.m_num_iter = num_iter
         self.m_posang_ignore = posang_ignore
+        self.m_sigma_accuracy = sigma_accuracy
 
         if self.m_angle[0] < 0. or self.m_angle[0] > 360. or self.m_angle[1] < 0. or \
            self.m_angle[1] > 360. or self.m_angle[2] < 0. or self.m_angle[2] > 360.:
@@ -270,6 +272,7 @@ class ContrastCurveModule(ProcessingModule):
                                                         self.m_residuals,
                                                         self.m_snr_inject,
                                                         self.m_num_iter,
+                                                        self.m_sigma_accuracy,
                                                         self.m_posang_ignore,
                                                         pos)))
 
