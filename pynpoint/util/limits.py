@@ -140,6 +140,7 @@ def contrast_limit(path_images: str,
     t_test_iter = np.zeros(num_iter+1)
 
     # Magnitude of the injected planet
+    #flux_in_iter[0] = star*10**(snr_inject/-2.5)
     flux_in_iter[0] = snr_inject*t_noise
 
     for i in range(num_iter):
@@ -176,14 +177,9 @@ def contrast_limit(path_images: str,
         # Get average in the noise aps, which goes into the student-t test
         avg_of_noiseaps_iter[i] = flux_out - t_test_iter[i] * noise_iter[i]
 
-        if i in [0,1]:
+        if i == 0:
             # Make initial guess for the limiting flux from snr_inject planet
-            flux_in_iter[i+1] = (sigma*noise_iter[i])/attenuation_iter[i]
-
-        #elif i == 1:
-            # Make second guess for the limiting flux,
-            # assuming same attenuation, noise, and average in noise aps
-        #    flux_in_iter[i+1] = (sigma*noise_iter[i] + avg_of_noiseaps_iter[i]) / attenuation_iter[i]
+            flux_in_iter[i+1] = (sigma*t_noise + avg_of_noiseaps)/attenuation_iter[i]
 
         else:
             # Make a next guess for the 5-sigma flux
@@ -197,54 +193,51 @@ def contrast_limit(path_images: str,
 
             # check if roots are real
             # if not, then use the method above for the next guess
-            if False:#np.isreal(roots).all():
+            if np.isreal(roots).all():
                 flux_in_iter[i+1] = np.min(roots[np.where(roots > 0)])
             else:
-                #flux_in_iter[i+1] = (sigma*noise_iter[i] + avg_of_noiseaps_iter[i]) / attenuation_iter[i]
                 flux_extrapolate = flux_in_iter[i]*(sigma/t_test_iter[i])
                 flux_in_iter[i + 1] = (sigma * np.poly1d(p_noise)(flux_extrapolate) +
                                        np.poly1d(p_avg)(flux_extrapolate)) / np.poly1d(p_att)(flux_extrapolate)
 
-        #print(f'\tt test snr = {t_test_iter[i]} for contrast of {flux_in_iter[i]/star}')
+        # Check if new flux is negative
+        if flux_in_iter[i+1] <= 0:
+            flux_in_iter[i+1:] = np.nan
+            t_test_iter[i+1:] = np.nan
+            
+            break
 
+    
     # Calculate the detection limit
-    contrast = flux_in_iter[-1]/star
+    contrast = -2.5 * math.log10(flux_in_iter[-1]/star)
+    contrast_iter = -2.5*np.log10(flux_in_iter/star)
 
-    # Do final check of contrast
-    mag = -2.5 * math.log10(contrast)
+    if contrast == contrast:
+        # Do final check of contrast
+        mag = contrast
 
-    fake = fake_planet(images=images,
+        fake = fake_planet(images=images,
                            psf=psf,
                            parang=parang,
                            position=(position[0], position[1]),
                            magnitude=mag,
                            psf_scaling=psf_scaling)
 
-    # Run the PSF subtraction
-    im_res, _  = pca_psf_subtraction(images=fake*mask,
+        # Run the PSF subtraction
+        im_res, _  = pca_psf_subtraction(images=fake*mask,
                                          angles=-1.*parang+extra_rot,
                                          pca_number=pca_number)
 
-    # Stack the residuals
-    im_res = combine_residuals(method=residuals, res_rot=im_res)
+        # Stack the residuals
+        im_res = combine_residuals(method=residuals, res_rot=im_res)
 
-    # Measure the flux of the fake planet
-    flux_out, noise_out, t_test_iter[-1], _ = false_alarm(image=im_res[0, ],
+        # Measure the flux of the fake planet
+        flux_out, noise_out, t_test_iter[-1], _ = false_alarm(image=im_res[0, ],
                                                      x_pos=yx_fake[1],
                                                      y_pos=yx_fake[0],
                                                      size=aperture,
                                                      posang_ignore=posang_ignore,
                                                      ignore=True)
 
-    #print(f'\tfinal t test snr = {t_test_out} for contrast of {contrast}')
-
-    # The flux_out can be negative, for example if the aperture includes self-subtraction regions
-    if contrast > 0.:
-        contrast = -2.5*math.log10(contrast)
-    else:
-        contrast = np.nan
-
-    contrast_iter = -2.5*np.log10(flux_in_iter/star)
-
-    # Separation [pix], position antle [deg], contrast [mag], FPF
+    # Separation [pix], position antle [deg], contrast [mag], FPF, final t-test S/N
     return position[0], position[1], contrast, fpf, t_test_iter[-1], contrast_iter, t_test_iter
