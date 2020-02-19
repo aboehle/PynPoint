@@ -178,7 +178,7 @@ def contrast_limit(path_images: str,
 
         if i in [0,1]:
             # Make initial guess for the limiting flux from snr_inject planet
-            flux_in_iter[i+1] = (sigma*noise_iter[i] + avg_of_noiseaps_iter[i])/attenuation_iter[i]
+            flux_in_iter[i+1] = (sigma*noise_iter[i])/attenuation_iter[i]
 
         #elif i == 1:
             # Make second guess for the limiting flux,
