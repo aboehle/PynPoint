@@ -23,6 +23,8 @@ from pynpoint.util.module import progress
 from pynpoint.util.psf import pca_psf_subtraction
 from pynpoint.util.residuals import combine_residuals
 
+import pdb
+
 class ContrastCurveModule(ProcessingModule):
     """
     Pipeline module to calculate contrast limits for a given sigma level or false positive
@@ -317,6 +319,8 @@ class ContrastCurveModule(ProcessingModule):
         result_contr_iter = np.asarray(result_contr_iter)
         result_snr_iter = np.asarray(result_snr_iter)
 
+        pdb.set_trace()
+
         # Sort the results first by separation and then by angle
         indices = np.lexsort((result[:, 1], result[:, 0]))
         result = result[indices]
@@ -329,11 +333,10 @@ class ContrastCurveModule(ProcessingModule):
         mag_mean = np.nanmean(result, axis=1)[:, 2]
         mag_var = np.nanvar(result, axis=1)[:, 2]
         res_fpf = result[:, 0, 3]
-        res_t_test = result[:, 0, 4]
 
         result[:,:,0] *= pixscale
 
-        limits = np.column_stack((pos_r*pixscale, mag_mean, mag_var, res_fpf, res_t_test))
+        limits = np.column_stack((pos_r*pixscale, mag_mean, mag_var, res_fpf))
 
         self.m_image_in_port._check_status_and_activate()
         self.m_contrast_out_port._check_status_and_activate()
