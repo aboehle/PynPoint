@@ -134,89 +134,101 @@ def contrast_limit(path_images: str,
     star = phot_table['aperture_sum'][0]
 
     # Initialize iteration arrays
-    flux_in_iter = np.zeros(num_iter+1)
+    flux_in_iter = np.zeros(num_iter)
     attenuation_iter = np.zeros(num_iter)
     noise_iter = np.zeros(num_iter)
     avg_of_noiseaps_iter = np.zeros(num_iter)
-    t_test_iter = np.zeros(num_iter+1)
-
-    # Magnitude of the injected planet
-    #flux_in_iter[0] = star*10**(snr_inject/-2.5)
-    flux_in_iter[0] = snr_inject*t_noise
+    t_test_iter = np.zeros(num_iter)
 
     i = 0
     t_test_iter[-1] = np.nan
+    
     while i < num_iter and not ( (t_test_iter[i-1] < (sigma + sigma_accuracy)) and (t_test_iter[i-1] > (sigma - sigma_accuracy)) ):
 
-        # Inject the fake planet
-        mag = -2.5 * math.log10(flux_in_iter[i] / star)
+        if i == 0:
+            # First inject a fake planet with snr_inject
+            flux_in_iter[i] = snr_inject*t_noise
 
-        fake = fake_planet(images=images,
+        elif i == 1:
+            # Make initial guess for the limiting flux from snr_inject planet
+            flux_in_iter[i] = (sigma*t_noise + avg_of_noiseaps)/attenuation_iter[i-1]
+
+        else:
+            # Make a next guess for the 5-sigma flux
+            # linearly extrapolating from previous 2 values of
+            # attenuation, noise, and average in noise aps
+            p_noise = np.polyfit(flux_in_iter[i-2:i], noise_iter[i-2:i], deg=1)
+            p_att = np.polyfit(flux_in_iter[i-2:i], attenuation_iter[i-2:i], deg=1)
+            p_avg = np.polyfit(flux_in_iter[i-2:i], avg_of_noiseaps_iter[i-2:i], deg=1)
+
+            roots = np.roots([p_att[0],(p_att[1] - sigma*p_noise[0] - p_avg[0]),-(sigma*p_noise[1] + p_avg[1])])
+
+            # check if roots are real
+           # if not, then use the method above for the next guess
+            if np.isreal(roots).all():
+                flux_in_iter[i] = np.min(roots[np.where(roots > 0)])
+            else:
+                flux_extrapolate = flux_in_iter[i-1]*(sigma/t_test_iter[i-1])
+                flux_in_iter[i] = (sigma * np.poly1d(p_noise)(flux_extrapolate) +
+                                       np.poly1d(p_avg)(flux_extrapolate)) / np.poly1d(p_att)(flux_extrapolate)
+
+        # Check if new flux is negative
+        if flux_in_iter[i] <= 0:
+            flux_in_iter[i:] = np.nan
+            t_test_iter[i:] = np.nan
+
+            i += 1
+            
+            break
+
+        else:
+        
+            # Inject the fake planet
+            mag = -2.5 * math.log10(flux_in_iter[i] / star)
+
+            fake = fake_planet(images=images,
                            psf=psf,
                            parang=parang,
                            position=(position[0], position[1]),
                            magnitude=mag,
                            psf_scaling=psf_scaling)
 
-        # Run the PSF subtraction
-        im_res, _  = pca_psf_subtraction(images=fake*mask,
+            # Run the PSF subtraction
+            im_res, _  = pca_psf_subtraction(images=fake*mask,
                                          angles=-1.*parang+extra_rot,
                                          pca_number=pca_number)
 
-        # Stack the residuals
-        im_res = combine_residuals(method=residuals, res_rot=im_res)
+            # Stack the residuals
+            im_res = combine_residuals(method=residuals, res_rot=im_res)
 
-        # Measure the flux of the fake planet
-        flux_out, noise_iter[i], t_test_iter[i], _ = false_alarm(image=im_res[0, ],
+            # Measure the flux of the fake planet
+            flux_out, noise_iter[i], t_test_iter[i], _ = false_alarm(image=im_res[0, ],
                                                             x_pos=yx_fake[1],
                                                             y_pos=yx_fake[0],
                                                             size=aperture,
                                                             posang_ignore=posang_ignore,
                                                             ignore=True)
 
-        # Calculate the amount of self-subtraction
-        attenuation_iter[i] = flux_out/flux_in_iter[i]
+            # Calculate the amount of self-subtraction
+            attenuation_iter[i] = flux_out/flux_in_iter[i]
 
-        # Get average in the noise aps, which goes into the student-t test
-        avg_of_noiseaps_iter[i] = flux_out - t_test_iter[i] * noise_iter[i]
+            # Get average in the noise aps, which goes into the student-t test
+            avg_of_noiseaps_iter[i] = flux_out - t_test_iter[i] * noise_iter[i]
 
-        if i == 0:
-            # Make initial guess for the limiting flux from snr_inject planet
-            flux_in_iter[i+1] = (sigma*t_noise + avg_of_noiseaps)/attenuation_iter[i]
+            i += 1
 
-        else:
-            # Make a next guess for the 5-sigma flux
-            # linearly extrapolating from previous 2 values of
-            # attenuation, noise, and average in noise aps
-            p_noise = np.polyfit(flux_in_iter[i-1:i+1], noise_iter[i-1:i+1], deg=1)
-            p_att = np.polyfit(flux_in_iter[i-1:i+1], attenuation_iter[i-1:i+1], deg=1)
-            p_avg = np.polyfit(flux_in_iter[i-1:i+1], avg_of_noiseaps_iter[i-1:i+1], deg=1)
-
-            roots = np.roots([p_att[0],(p_att[1] - sigma*p_noise[0] - p_avg[0]),-(sigma*p_noise[1] + p_avg[1])])
-
-            # check if roots are real
-            # if not, then use the method above for the next guess
-            if np.isreal(roots).all():
-                flux_in_iter[i+1] = np.min(roots[np.where(roots > 0)])
-            else:
-                flux_extrapolate = flux_in_iter[i]*(sigma/t_test_iter[i])
-                flux_in_iter[i + 1] = (sigma * np.poly1d(p_noise)(flux_extrapolate) +
-                                       np.poly1d(p_avg)(flux_extrapolate)) / np.poly1d(p_att)(flux_extrapolate)
-
-        i += 1
-
-        # Check if new flux is negative
-        if flux_in_iter[i] <= 0:
-            flux_in_iter[i:] = np.nan
-            t_test_iter[i:] = np.nan
-            
-            break
-
+    # Set values for remaining iteration to NaN
+    flux_in_iter[i:] = np.nan
+    t_test_iter[i:] = np.nan
     
     # Calculate the detection limit
-    contrast = -2.5 * math.log10(flux_in_iter[i]/star)
+    contrast = -2.5 * math.log10(flux_in_iter[i-1]/star)
     contrast_iter = -2.5*np.log10(flux_in_iter/star)
 
+    # Separation [pix], position antle [deg], contrast [mag], FPF, final t-test S/N
+    return position[0], position[1], contrast, fpf, t_test_iter[i-1], contrast_iter, t_test_iter
+    
+    '''
     if contrast == contrast:
         # Do final check of contrast
         mag = contrast
@@ -243,6 +255,4 @@ def contrast_limit(path_images: str,
                                                      size=aperture,
                                                      posang_ignore=posang_ignore,
                                                      ignore=True)
-
-    # Separation [pix], position antle [deg], contrast [mag], FPF, final t-test S/N
-    return position[0], position[1], contrast, fpf, t_test_iter[i], contrast_iter, t_test_iter
+'''

@@ -329,8 +329,8 @@ class ContrastCurveModule(ProcessingModule):
         result_snr_iter = result_snr_iter[indices]
 
         result = result.reshape((pos_r.size, pos_t.size, 5))
-        result_contr_iter = result_contr_iter.reshape((pos_r.size, pos_t.size, self.m_num_iter+1))
-        result_snr_iter = result_snr_iter.reshape((pos_r.size, pos_t.size, self.m_num_iter+1))
+        result_contr_iter = result_contr_iter.reshape((pos_r.size, pos_t.size, self.m_num_iter))
+        result_snr_iter = result_snr_iter.reshape((pos_r.size, pos_t.size, self.m_num_iter))
 
         result_iter = np.dstack((result_contr_iter,result_snr_iter))
 
