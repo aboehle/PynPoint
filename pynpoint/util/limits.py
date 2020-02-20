@@ -203,14 +203,14 @@ def contrast_limit(path_images: str,
                 flux_in_iter[i + 1] = (sigma * np.poly1d(p_noise)(flux_extrapolate) +
                                        np.poly1d(p_avg)(flux_extrapolate)) / np.poly1d(p_att)(flux_extrapolate)
 
+        i += 1
+
         # Check if new flux is negative
-        if flux_in_iter[i+1] <= 0:
-            flux_in_iter[i+1:] = np.nan
-            t_test_iter[i+1:] = np.nan
+        if flux_in_iter[i] <= 0:
+            flux_in_iter[i:] = np.nan
+            t_test_iter[i:] = np.nan
             
             break
-
-        i += 1
 
     
     # Calculate the detection limit
